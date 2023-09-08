@@ -53,7 +53,7 @@ The training data is in a uniformed JSONL format, in which each line of data has
 ```
 
 ### 2.2 Inference Data Format
-The inference string is a string concatenated by conversation data(system, human and bot contents) in the training data format. 
+The inference data contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
 It is used as the data "seen"(before tokenization) by the model in training process.
 It is used as input during the inference process as well.
 Here is an example format of the concatenated string:
@@ -72,12 +72,12 @@ Here is an example format of the concatenated string:
 <|role_start|>bot<|role_end|>{Bot output to be genreated}</s>
 """
 ```
-When applying inference, you always make your input string end with "<|role_start|>bot<|role_end|>" to ask the model generating answers.
+When applying inference, you always make your input string end with "<|role_start|>bot<|role_end|>" to request the model generating answers.
 
 
 ## 3. Model Training
 Currently, the "MFTCoder/mft_peft_hf" codebase supports QLoRA instruction fine-tuning, and LoRA instruction fine-tuning. 
-In theory, this project can be used to train any publicly available model of Hugging Face Format.
+In theory, this project can be used to train any publicly available model in the HuggingFace Format.
 
 Here are some excellent pre-trained models weights available on Huggingface that can be finetuned with this codebase:
 
@@ -91,7 +91,7 @@ You can find the implementations in the ```mft_peft_hf/src``` directory. The ent
 Configurations are stored in the ```mft_peft_hf/src/pefts/configs``` directory for easy management and modification.
 
 ### 3.1 Tokenization
-During training, we concatenate multi-turn dialogues into the following format (also known as the inference string format mentioned earlier) and then tokenize it. In this format, <|role_start|>human<|role_end|> represents the human input prompt, <|role_start|>bot<|role_end|> represents the bot output prompt, and </s> represents the eos_token.
+During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, <|role_start|>human<|role_end|> represents the human input (i.e., prompt), <|role_start|>bot<|role_end|> represents the bot output, and </s> represents the eos_token.
 You can modify and replace the eos_token based on different models' requirements.
 
 Here is an example of the concatenated format with prompts:
@@ -105,7 +105,7 @@ By including all target parts from multiple turns in a single training iteration
 
 ### 3.2 LoRA/QLoRA
 You can refer to the Lora paper for details about LoRA：[LORA: LOW-RANK ADAPTATION OF LARGE LANGUAGE MODELS](https://arxiv.org/pdf/2106.09685.pdf)
-You can refer to the Qlora paper for details about LoRA：[QLORA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/pdf/2305.14314.pdf)
+You can refer to the Qlora paper for details about QLoRA：[QLORA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/pdf/2305.14314.pdf)
 
 QLoRA (Quantized LoRA) is a method that combines 4-bit nf4 quantization and additional adapters to achieve a balance between reducing GPU memory consumption and approaching the performance of full-parameter fine-tuning.
 
@@ -139,7 +139,7 @@ The main parameter explanations for the ```configs/*_train_config``` are as foll
 
 - **quantization**: Whether to use quantization."4bit" or "8bit", or null. For QLoRA, it is recommended to use 4-bit quantization.
 
-- **pretrained_model_path**: Local/Shared disk path or model name on Hugging Face for the pre-trained model.
+- **pretrained_model_path**: Local/Shared disk path or model name on HuggingFace for the pre-trained model.
 
 - **weighted_loss_mode**: Loss weighting method for multitask training. "case3" is recommended at present.
 
@@ -183,7 +183,7 @@ Using LoRA or QLoRA for training, this project only saves the weights and config
 To merge the adapter weights with the base model, see ```src/pefts/merge_base_and_lora_to_hf.py```
 
 ### 4.2 Inference demo
-Here is the script for inference on our trained models, which is compatible with most Hugging Face models:
+Here is the script for inference on our trained models, which is compatible with most HuggingFace models:
 ```python
 from transformers import (
     AutoTokenizer, 
@@ -237,11 +237,11 @@ If OOM happened，you can reduce parameters such as per_device_train_batch_size 
 However, this may slightly slow down the training speed.
 
 #### Q2：install packages
-refer to init_env.sh and requirements.txt
+Please refer to init_env.sh and requirements.txt
 
 
-#### Q3：How should I spicify GPUs for training？
-You can specify visiable GPUs as below:
+#### Q3：How should I specify the GPUs for training？
+You can specify the visiable GPUs as below:
 ```bash
 CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --train_config configs/starcoder_train_config.json
 ```
