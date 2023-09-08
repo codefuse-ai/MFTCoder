@@ -106,9 +106,9 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 ```configs/*_train_config```中的主要参数说明如下，以下参数可以根据需求进行修改，其他参数建议不做修改：
 - load_raw_dataset : 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
 - data_paths: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据
-- output_dir：训练输出目录，存储checkpoint、lora_adaptor checkpoint等
+- output_dir：训练输出目录，存储checkpoint、lora_adaptor等
 - tb_dir: 存储tensorboard等
-- model_type
+- model_type: "llama|starcoder|chatglm2|qwen|gpt_nex"
 - peft_type: lora或者qlora
 - lora_rank: lora rank
 - lora_alpha: lora alpha

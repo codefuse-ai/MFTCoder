@@ -20,7 +20,7 @@ else
   WEIGHT_BY_NUM_DOCUMENTS="--weight_by_num_documents"
 fi
 
-VOCAB_FILE="../tools/codegpt-13b-tokenizer.json"
+VOCAB_FILE="../utils/vocab.json"
 MODEL_TYPE="gpt_neox"
 
 PRETRAINED_MODEL_PATH="$MODEL_NAME_OR_PATH"

@@ -10,11 +10,8 @@ import os
 import sys
 import numpy as np
 import random
-# sys.path.append(
-#     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
-# )
 
-# 将父目录的父目录加入path 
+# add src root path
 current_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_path))
 grandparent_dir = os.path.dirname(parent_dir)
@@ -32,12 +29,9 @@ import glob
 from tokenizer import build_tokenizer
 from threading import Semaphore
 
-
-
-
-table = {ord(f):ord(t) for f,t in zip(
-     u'，。！？：【】（）％＃＠＆１２３４５６７８９０',
-     u',.!?:[]()%#@&1234567890')}
+table = {ord(f): ord(t) for f, t in zip(
+    u'，。！？：【】（）％＃＠＆１２３４５６７８９０',
+    u',.!?:[]()%#@&1234567890')}
 
 
 def punctuation_format(text: str):
@@ -48,8 +42,8 @@ def punctuation_format(text: str):
     text = text.translate(table)
     return text
 
-def is_prompt_answer_format(data):
 
+def is_prompt_answer_format(data):
     if "prompt" in data and "answer" in data:
         return True
     else:
@@ -68,6 +62,7 @@ def is_text_format(data):
         return True
     else:
         return False
+
 
 class Encoder(object):
     def __init__(self, args):
@@ -97,21 +92,21 @@ class UniformEncoder(Encoder):
     def __init__(self, args, mode='sft'):
         super().__init__(args)
         self.mode = mode
-        # 实际计算时会Shift一位，因此这里seq_length + 1
+        # seq_length + 1 for shifting
         if args.load_raw_dataset:
             self.seq_length = args.seq_length + 1
             self.stride = args.seq_length
         else:
             self.seq_length = args.seq_length
-            
+
         self.remain_input_ids = []
         self.remain_loss_mask = []
 
     def encode(self, data):
-        
+
         encode_res = {
-            "input_ids":[],
-            "loss_mask":[]
+            "input_ids": [],
+            "loss_mask": []
         }
 
         if is_prompt_answer_format(data):
@@ -126,7 +121,7 @@ class UniformEncoder(Encoder):
         for token_res in self._tokenize_fields(data, data_type=data_type):
             for k, v in token_res.items():
                 encode_res[k].append(v)
-        
+
         length = 0
         if data_type == 'prompt_answer':
             length = len(data['prompt']) + len(data['answer'])
@@ -135,7 +130,7 @@ class UniformEncoder(Encoder):
                 length += len(chat['content'])
         elif data_type == 'text':
             length += len(data['text'])
-        
+
         return encode_res, length
 
     def _tokenize_fields(self, data, data_type):
@@ -164,7 +159,6 @@ class UniformEncoder(Encoder):
             ROLE_END_MARKER = ''
         else:
             raise ValueError(f"tokenize_mode does not support {self.mode}, please use sft or pretrain")
-
 
         human_marker_ids = self.tokenizer.encode(f"{ROLE_START_MARKER}{HUMAN}{ROLE_END_MARKER}", add_special_tokens=False)
         bot_marker_ids = self.tokenizer.encode(f"{ROLE_START_MARKER}{BOT}{ROLE_END_MARKER}", add_special_tokens=False)
@@ -195,13 +189,11 @@ class UniformEncoder(Encoder):
                 role = r[ROLE_COL]
                 content = r[CONTENT_COL]
                 content = punctuation_format(content)
-                # if not content.endswith('\n'):  # chatML格式
-                #     content = content + '\n'
                 if role == HUMAN:
                     role_marker_ids = human_marker_ids
                     content_ids = self.tokenizer.encode(content, add_special_tokens=False)
                 elif role == BOT:
-                    # 每一个bot输出结尾的eod,计算loss, 学会在哪里停， human和system的eod不需要计算loss
+                    # compute loss for eos token after bot's content
                     role_marker_ids = bot_marker_ids
                     content_ids = self.tokenizer.encode(content, add_special_tokens=False) + sft_end_marker_ids
                 elif role == SYSTEM:
@@ -222,7 +214,7 @@ class UniformEncoder(Encoder):
         else:
             raise ValueError(
                 f"data_type does not support {self.args.data_type}, please use chatML or prompt_answer or text(for pretrain)")
-            
+
         # print(self.mode)
         if self.mode == 'pretrain':
             # change loss mask to all 1s
@@ -238,13 +230,8 @@ class UniformEncoder(Encoder):
             if len(input_ids) <= self.seq_length:
                 yield self.padding(input_ids, loss_mask)
 
-            # 如果超长，直接抛弃 or 使用seq_length窗口滑动采样
+            # drop if too long
             else:
-                # cursor = 0
-                # while cursor < len(input_ids):
-                #     end_idx = min(cursor + self.seq_length, len(input_ids))
-                #     yield self.padding(input_ids[cursor: end_idx], loss_mask[cursor: end_idx])
-                #     cursor = end_idx
                 yield {}
         elif self.args.padding_mode == 'concat':
             input_ids = self.remain_input_ids + input_ids
@@ -288,7 +275,7 @@ class UniformEncoder(Encoder):
         return {
             "input_ids": input_ids,
             "loss_mask": loss_mask
-        } 
+        }
 
 
 def find_jsonl_fnames(inputs):
@@ -316,7 +303,9 @@ def yield_from_files(fnames: list, semaphore):
     """
 
     def yielder(fname, semaphore):
-        for f in filter(lambda x: x, lmd.Reader(fname).stream_data(key=['task', 'src_language', 'src_code', 'tgt_language', 'tgt_code', 'sql', 'prompt', 'answer', 'bad_answer'])):
+        for f in filter(lambda x: x, lmd.Reader(fname).stream_data(
+                key=['task', 'src_language', 'src_code', 'tgt_language', 'tgt_code', 'sql', 'prompt', 'answer',
+                     'bad_answer'])):
             semaphore.acquire()
             yield f
 

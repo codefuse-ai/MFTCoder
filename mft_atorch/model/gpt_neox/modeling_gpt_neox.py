@@ -107,71 +107,6 @@ class GPTNeoXAttention(nn.Module):
         self.query_key_value = nn.Linear(config.hidden_size, 3 * config.hidden_size)
         self.dense = nn.Linear(config.hidden_size, config.hidden_size)
 
-    # # origin attention
-    # def forward(
-    #     self,
-    #     hidden_states,
-    #     attention_mask,
-    #     position_ids=None,
-    #     head_mask=None,
-    #     layer_past=None,
-    #     use_cache=False,
-    #     output_attentions=False,
-    # ):
-    #     has_layer_past = layer_past is not None
-
-    #     # Compute QKV
-    #     # Attention heads [batch, seq_len, hidden_size]
-    #     #   --> [batch, seq_len, (np * 3 * head_size)]
-    #     qkv = self.query_key_value(hidden_states)
-
-    #     # [batch, seq_len, (num_heads * 3 * head_size)]
-    #     #   --> [batch, seq_len, num_heads, 3 * head_size]
-    #     new_qkv_shape = qkv.size()[:-1] + (self.num_attention_heads, 3 * self.head_size)
-    #     qkv = qkv.view(*new_qkv_shape)
-
-    #     # [batch, seq_len, num_attention_heads, 3 * head_size] --> 3 [batch, num_attention_heads, seq_len, head_size]
-    #     query = qkv[..., : self.head_size].permute(0, 2, 1, 3)
-    #     key = qkv[..., self.head_size : 2 * self.head_size].permute(0, 2, 1, 3)
-    #     value = qkv[..., 2 * self.head_size :].permute(0, 2, 1, 3)
-
-    #     # Compute rotary embeddings on rotary_ndims
-    #     query_rot = query[..., : self.rotary_ndims]
-    #     query_pass = query[..., self.rotary_ndims :]
-    #     key_rot = key[..., : self.rotary_ndims]
-    #     key_pass = key[..., self.rotary_ndims :]
-
-    #     # Compute token offset for rotary embeddings (when decoding)
-    #     seq_len = key.shape[-2]
-    #     offset = 0
-    #     if has_layer_past:
-    #         offset = layer_past[0].shape[-2]
-    #         seq_len += offset
-    #     cos, sin = self.rotary_emb(value, seq_len=seq_len)
-    #     query, key = apply_rotary_pos_emb(query_rot, key_rot, cos, sin, offset=offset)
-    #     query = torch.cat((query, query_pass), dim=-1)
-    #     key = torch.cat((key, key_pass), dim=-1)
-
-    #     # Cache QKV values
-    #     if has_layer_past:
-    #         past_key = layer_past[0]
-    #         past_value = layer_past[1]
-    #         key = torch.cat((past_key, key), dim=-2)
-    #         value = torch.cat((past_value, value), dim=-2)
-    #     present = (key, value) if use_cache else None
-
-    #     # Compute attention
-    #     attn_output, attn_weights = self._attn(query, key, value, attention_mask, head_mask)
-
-    #     # Reshape outputs
-    #     attn_output = self._merge_heads(attn_output, self.num_attention_heads, self.head_size)
-    #     attn_output = self.dense(attn_output)
-
-    #     outputs = (attn_output, present)
-    #     if output_attentions:
-    #         outputs += (attn_weights,)
-
-    #     return outputs
 
     # new flash attention
     def forward(
@@ -242,15 +177,6 @@ class GPTNeoXAttention(nn.Module):
 
         else:
             from atorch.modules.transformer.layers import flash_attn_with_mask_bias
-            #attn_output = flash_attn_with_mask_bias(
-            #    query,
-            #    key,
-            #    value,
-            #    mask=attention_mask.to(value.dtype) if attention_mask is not None else attention_mask,
-            #    dropout_p=dropout_p,
-            #    softmax_scale=softmax_scale,
-            #    causal=True,
-            #)
             attn_output = flash_attn_with_mask_bias(
                 query,
                 key,

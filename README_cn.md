@@ -1,7 +1,7 @@
 # CodeFuse-MFTCoder: 多任务微调代码大模型
 
 <p align="center">
-  <img src="./assets/codefuse_logo_blue.png" width="80%" />
+  <img src="./assets/codefuse_logo_blue.png" width="100%" />
 </p>
 
 
@@ -9,16 +9,13 @@
 
 <p>
     <a href="https://github.com/codefuse-ai/MFTCoder">
-        <img alt="stars" src="https://img.shields.io/github/stars/codefuse-ai/mftcoder?style=social" />
+        <img alt="stars" src="https://img.shields.io/github/stars/codefuse-ai/MFTCoder?style=social" />
     </a>
     <a href="https://github.com/codefuse-ai/MFTCoder">
-        <img alt="forks" src="https://img.shields.io/github/forks/codefuse-ai/mftcoder?style=social" />
+        <img alt="forks" src="https://img.shields.io/github/forks/codefuse-ai/MFTCoder?style=social" />
     </a>
     <a href="https://github.com/codefuse-ai/MFTCoder/LICENCE">
       <img alt="License: MIT" src="https://badgen.net/badge/license/apache2.0/blue" />
-    </a>
-     <a href="https://github.com/codefuse-ai/MFTCoder/releases">
-      <img alt="Release Notes" src="https://img.shields.io/github/release/codefuse-ai/MFTCoder" />
     </a>
     <a href="https://github.com/codefuse-ai/MFTCoder/issues">
       <img alt="Open Issues" src="https://img.shields.io/github/issues-raw/codefuse-ai/MFTCoder" />
@@ -46,15 +43,22 @@
 
 🔥 [2023/08/26]MFTCoder支持使用LoRA/QLoRA对CodeLlama、Chatglm2、Codegeex2、Llama、Llama2、starcoder、qwen和GPT-NEOX模型进行微调。
 
-| 模型                          | HumanEval(pass@1) | 
-|:----------------------------|:-----------------:|
-| CodeLlama-34b               |       48.8%       |
-| CodeLlama-34b-Python        |       53.7%       |
-| WizardCoder-Python-34B-V1.0 |       73.2%       |
-| **CodeFuse-CodeLlama-34B**  |     **74.4%**     |
+### HumanEval表现
+| 模型                          | HumanEval(pass@1) |   日期    |
+|:----------------------------|:-----------------:|:-------:|
+| **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
+| WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
+| GPT-4(zero-shot)            |       67.0%       | 2023/03  |
+| PanGu-Coder2 15B            |       61.6%       | 2023/08  |
+| CodeLlama-34b-Python        |       53.7%       | 2023/08  |
+| CodeLlama-34b               |       48.8%       | 2023/08  |
+| GPT-3.5(zero-shot)          |       48.1%       | 2022/11 |
+| OctoCoder                   |       46.2%       | 2023/08  |
+| StarCoder-15B               |       33.6%       | 2023/05  |
+| LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
 
 ## 文章
-
+敬请期待
 
 ## 项目简介
 **Codefuse-MFTCoder** 是一个开源的多任务代码大语言模型项目，包含代码大模型的模型、数据、训练等。我们希望通过开源，分享交流大语言模型在代码领域的进步。
@@ -63,10 +67,13 @@
 ![img_1.png](./assets/img_1.png)
 
 ### 项目优势
-1. [x] **多任务**：一个模型同时支持多个任务，会保证多个任务之间的平衡，甚至可以泛化到新的没有见过的任务上去；
-2. [x] **多模型**：支持最新的多个开源模型，包括gpt-neox，llama，llama-2，baichuan，Qwen，chatglm2等；
-3. [x] **多框架**：同时支持HuggingFace 和 [ATorch 框架](https://github.com/intelligent-machine-learning/dlrover)；
-4. [x] **高效微调**：支持LoRA和QLoRA，可以用很少的资源去微调很大的模型，且训练速度能满足几乎所有微调场景；
+:white_check_mark: **多任务**：一个模型同时支持多个任务，会保证多个任务之间的平衡，甚至可以泛化到新的没有见过的任务上去；
+
+:white_check_mark: **多模型**：支持最新的多个开源模型，包括gpt-neox，llama，llama-2，baichuan，Qwen，chatglm2等；
+
+:white_check_mark: **多框架**：同时支持HuggingFace 和 [ATorch 框架](https://github.com/intelligent-machine-learning/dlrover)；
+
+:white_check_mark: **高效微调**：支持LoRA和QLoRA，可以用很少的资源去微调很大的模型，且训练速度能满足几乎所有微调场景；
 
 
 本项目主要内容如下：
@@ -74,8 +81,8 @@
 - 支持QLoRA低成本高效指令微调、LoRA高效指令微调。
 - 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
 - 支持lora与base model进行权重合并，推理更便捷。
-- 整理并开源指令微调数据集：CodeFuse13B-evol-instruction-4K；CodeFuse-CodeExercise-Python-27k。
-- 开源[Codefuse系列指令微调模型权重](https://huggingface.co/codefuse-ai) 。
+- 整理并开源2个指令微调数据集：[CodeFuse13B-evol-instruction-4K](https://huggingface.co/datasets/codefuse/Evol-instruction-66k)和[CodeFuse-CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse/CodeExercise-Python-27k)。
+- 开源2个[Codefuse系列指令微调模型权重]：[CodeFuse-13B](https://huggingface.co/codefuse/CodeFuse-13B)和[CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse/CodeFuse-CodeLlama-34B)。
 
 
 
@@ -97,20 +104,20 @@ sh init_env.sh
 
 使用本项目的训练代码，以及上述训练数据，我们训练并在huggingface开源了以下模型。
 
-| 模型                                                               | 基座模型                 | 训练数据 | Batch Size | Seq Length |
-|------------------------------------------------------------------|----------------------|------|------------|------------|
-| [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
+| 模型                                                            | 基座模型                 | 训练数据 | Batch Size | Seq Length |
+|---------------------------------------------------------------|----------------------|------|------------|------------|
+| [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse/) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| [🔥 CodeFuse-13B](https://huggingface.co/codefuse/)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
 
 
 
 ## 数据集
-目前本项目主要整理了如下指令数据集，并将其整理成统一的数据格式：
+目前本项目主要整理了如下指令数据集，并将其整理成统一的数据格式，这两个指令微调数据集是我们多任务训练中数十个任务中的2个，未来我们会陆续开源更多的代码任务指令微调数据集：
 
-| 数据集                                                                    | 介绍                                                                 |
-|------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [⭐ Evol-instruction-66k](https://huggingface.co/datasets/)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
-| [⭐ CodeExercise-Python-27k](https://huggingface.co/datasets/) | 基于chatgpt生成的高质量python练习题数据                                         |
+| 数据集                                                           | 介绍                                                                 |
+|---------------------------------------------------------------|--------------------------------------------------------------------|
+| [⭐ Evol-instruction-66k](https://huggingface.co/codefuse/)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
+| [⭐ CodeExercise-Python-27k](https://huggingface.co/codefuse/) | 基于chatgpt生成的高质量python练习题数据                                         |
 
 
 

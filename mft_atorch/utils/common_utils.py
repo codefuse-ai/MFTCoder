@@ -182,7 +182,7 @@ def save_ckpt(model, optimizer, lr_scheduler, epoch, steps, save_path, logger):
         model_state_dict = model.state_dict()
         optim_state_dict = optimizer.state_dict()
         lrs_state_dict = lr_scheduler.state_dict()
-    # rank0 保存
+    # rank0 save
     if is_main_process():
         torch.save(
             {
@@ -217,12 +217,6 @@ def scheduler_and_resume(args, train_dataloader, model, optimizer, checkpoint):
         min_lr=args.min_lr,
         use_checkpoint_lr_scheduler=True,
     )
-    # lr_scheduler = get_scheduler(
-    #     name=args.lr_scheduler_type,
-    #     optimizer=optimizer,
-    #     num_warmup_steps=args.num_warmup_steps * args.gradient_accumulation_steps,
-    #     num_training_steps=args.max_steps * args.gradient_accumulation_steps
-    # )
 
     if args.resume_from_checkpoint is not None:
         if os.path.isfile(args.resume_from_checkpoint):
@@ -252,16 +246,8 @@ def scheduler_and_resume(args, train_dataloader, model, optimizer, checkpoint):
         args.max_steps = args.num_train_epochs * args.num_update_steps_per_epoch
     # Afterwards we recalculate our number of training epochs
     args.num_train_epochs = math.ceil(args.max_steps / args.num_update_steps_per_epoch)
-
-    # Figure out how many steps we should save the Accelerator states
-    # if args.checkpointing_steps is not None and args.checkpointing_steps.isdigit():
-    #     args.checkpointing_steps = int(args.checkpointing_steps)
     
     return args, lr_scheduler, optimizer
-
-
-# def get_tflops(model_numel, batch_size, seq_len, step_time):
-#     return model_numel * batch_size * seq_len * 8 / 1e12 / (step_time + 1e-12)
 
 
 def get_computation_speed(batch_size_per_device, seq_len, step_time):
@@ -380,6 +366,6 @@ class EarlyStopping:
         '''Saves model when validation loss decrease.'''
         if self.verbose:
             print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
-        torch.save(model.state_dict(), 'checkpoint.pt')	# 这里会存储迄今最优模型的参数
+        torch.save(model.state_dict(), 'checkpoint.pt')
         self.val_loss_min = val_loss
 

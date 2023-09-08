@@ -64,40 +64,18 @@ def find_all_linear_names(args, model):
 def setup_model(args, logger, use_cache=False):
     # Load pretrained model and tokenizer
 
-    if args.pretrained_model_path:  # TODO: 实现from pretrained读tokenizer
+    if args.pretrained_model_path:
         if args.model_type == 'gpt_neox':
-            # if args.tokenizer_type:
-            #     tokenizer = build_tokenizer(args)
-            #     tokenizer.eod_token = "<|endoftext|>"
-            #     tokenizer.pad_token = "<|pad|>"
-            #     # tokenizer.sop_token = "<|endoftext|>"  # 适配multi task dataset
-            #     # tokenizer.eop_token = "<|endoftext|>"
-            #     tokenizer.eod_id = tokenizer.tokenize(tokenizer.eod_token)[0]
-            #     tokenizer.pad_id = tokenizer.tokenize(tokenizer.pad_token)[0]
-            # else:
             tokenizer = GPTNeoXTokenizerFast.from_pretrained(args.pretrained_model_path)
-            # tokenizer = PreTrainedTokenizerFast(tokenizer_file=args.vocab_file)
             tokenizer.eod_token = "<|endoftext|>"
             tokenizer.pad_token = "<|pad|>"
-            tokenizer.sop_token = "<|endoftext|>"  # 适配multi task dataset
+            tokenizer.sop_token = "<|endoftext|>"
             tokenizer.eop_token = "<|endoftext|>"
             tokenizer.eod_id = tokenizer.convert_tokens_to_ids(tokenizer.eod_token)
             tokenizer.pad_id = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
             
             print_rank_0(f'tokenizer {tokenizer.eod_token} id: {tokenizer.eod_id}')
             print_rank_0(f'tokenizer {tokenizer.pad_token} id: {tokenizer.pad_id}')
-    elif args.train_mode == 'sst':
-        # tokenizer = build_tokenizer(args)
-        tokenizer = PreTrainedTokenizerFast(tokenizer_file=args.vocab_file)
-        tokenizer.eod_token = "<|endoftext|>"
-        tokenizer.pad_token = "<|pad|>"
-        tokenizer.sop_token = "<|endoftext|>"  # 适配multi task dataset
-        tokenizer.eop_token = "<|endoftext|>"
-        tokenizer.eod_id = tokenizer.convert_tokens_to_ids(tokenizer.eod_token)
-        tokenizer.pad_id = tokenizer.convert_tokens_to_ids(tokenizer.pad_token)
-
-        print_rank_0(f'tokenizer {tokenizer.eod_token} id: {tokenizer.eod_id}')
-        print_rank_0(f'tokenizer {tokenizer.pad_token} id: {tokenizer.pad_id}')
     else:
         raise ValueError(
             "You are instantiating a new tokenizer from scratch. This is not supported by this script."
@@ -116,15 +94,12 @@ def setup_model(args, logger, use_cache=False):
         logger.info("Training model from checkpoint")
         config = auto_config.from_pretrained(args.pretrained_model_path)
         if args.peft_type != "qlora":
-            # config = auto_config.from_pretrained(args.pretrained_model_path)
-            # model = auto_model_class.from_pretrained(args.pretrained_model_path, trust_remote_code=True, device_map='auto').cuda()
             model = auto_model_class.from_pretrained(args.pretrained_model_path, trust_remote_code=True).cuda()
         # TODO: qlora
     else:
         logger.info("Training model from scratch")
         if args.model_type == 'gpt_neox':
             config = GPTNeoXConfig.from_json_file(args.config_path + '/config.json')
-            # model = AutoModelForCausalLM.from_config(config, trust_remote_code=args.trust_remote_code)
             model = GPTNeoXForCausalLM._from_config(config)
         else:
             config = AutoConfig.from_json_file(args.config_path + '/config.json')

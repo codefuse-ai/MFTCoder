@@ -184,7 +184,7 @@ class AtorchTrainer:
             print(f'early_stopping_patience: {self.args.early_stopping_patience}')
             patience = self.args.early_stopping_patience
             self.early_stopping = EarlyStopping(patience, verbose=True)
-        
+
         self.train_dataloader_args = {
             "shuffle": True,
             "batch_size": self.total_train_batch_size,
@@ -227,8 +227,6 @@ class AtorchTrainer:
             self.args.num_train_epochs = math.ceil(
                 self.args.max_steps / self.num_update_steps_per_epoch)
 
-        # self.args.warmup_steps = self.args.get_warmup_steps(
-        #     self.args.max_steps)  # 找不到get_warmup_steps
         custom_lr_scheduler_type = self.kwargs.get(
             'custom_lr_scheduler_type', None)
         self.lr_scheduler = get_scheduler(
@@ -250,7 +248,7 @@ class AtorchTrainer:
         self.summary_writer = None
         if torch.distributed.get_rank() == 0:
             self.summary_writer = SummaryWriter(log_dir=self.log_dir)
-    
+
     def get_last_checkpoint(self, folder):
         _re_checkpoint = re.compile(r"^" + PREFIX_CHECKPOINT_DIR + r"\-(\d+)")
         content = sorted(os.listdir(folder))
@@ -307,7 +305,7 @@ class AtorchTrainer:
         print('resume atorch model state')
         if self.is_rank0():
             self.model.load_state_dict(model_state_dict)
-        # 在 rank 0 加载完毕后，再通过sync_module_states分发参数
+        # load on rank 0，then distribute params via sync_module_states
         torch.distributed.barrier()
         # self.model = FSDP(self.model, sync_module_states=True, **kwargs)
 
@@ -316,14 +314,14 @@ class AtorchTrainer:
         print('resume optimizer state')
         optim_state_dict = FSDP.scatter_full_optim_state_dict(
             optim_state_dict, self.model)  # may be removed after PyTorch 2.2
-        
+
         def move_optim_state_to_cpu(optim_state_dict):
             for k in optim_state_dict:
                 if isinstance(optim_state_dict[k], torch.Tensor):
                     optim_state_dict[k] = optim_state_dict[k].cpu()
                 elif isinstance(optim_state_dict[k], dict):
                     move_optim_state_to_cpu(optim_state_dict[k])
-        
+
         move_optim_state_to_cpu(optim_state_dict)
 
         self.optimizer.load_state_dict(optim_state_dict)
@@ -331,28 +329,22 @@ class AtorchTrainer:
 
     def atorch_init(self):
         assert torch_version() >= (2, 0, 0), "use pt2.0 for use orig param if fsdp"
-        
+
         if self.args.model_type == 'gpt_neox':
             # wrap_class = (GPTNeoXAttention, GPTNeoXMLP)
             wrap_class = (GPTNeoXLayer,)
-        
+
         parallel_mode = []
         if self.args.dp:
-            # p_mode = ([("data", torch.distributed.get_world_size())], None)
             parallel_mode.append(("data", self.args.dp))
         if self.args.tp:
             parallel_mode.append(("tensor_parallel", self.args.tp))
         strategy = [
-            # ("parallel_mode", p_mode),
             ("parallel_mode", (parallel_mode, None)),
             "module_replace",
-            # ("fsdp", fsdp_config),
-            # ("amp_native", {"dtype": torch.bfloat16}) if self.args.bf16 else "amp_native",
-            # ("checkpoint", wrap_class),
         ]
         if self.args.peft_type is None or self.args.peft_type == 'lora':
-            # cpu_offload = False if self.args.peft_type is None else True
-            cpu_offload = False if self.args.total_model_param < 1e9 else True
+            cpu_offload = False
             fsdp_config = {
                 "atorch_wrap_cls": wrap_class,
                 "sync_module_states": True,
@@ -375,11 +367,11 @@ class AtorchTrainer:
             elif self.args.fp16:
                 amp_config = {"dtype": torch.float16}
             strategy.append(("amp_native", amp_config))
-        
+
         if self.args.checkpoint_activations:
             strategy.append(("checkpoint", wrap_class))
         print(f"Manually loaded auto acc strategy: {strategy}")
-        
+
         def prepare_input(batch, device):
             batch = {k: v.to(device=device, non_blocking=True) if v is not None else None
                      for k, v in batch.items()}
@@ -407,7 +399,7 @@ class AtorchTrainer:
             ]
             return optimizer_grouped_parameters
 
-        # load fsdp checkpoint参数
+        # load fsdp checkpoint
         if self.args.resume_from_checkpoint == 'true':
             logger.info(f'Resume training from {self.resume_checkpoint_dir}')
             if self.is_rank0():
@@ -476,8 +468,8 @@ class AtorchTrainer:
         print(f'valid dataset length is: {len(self.valid_dataset)}')
         print(f'valid dataloader length is: {len(self.valid_dataloader)}')
         print(f'per device batch size: {self.args.per_device_valid_batch_size}')
-        progress_bar = tqdm(range(len(self.valid_dataloader)), 
-                            disable=not is_local_main_process(), 
+        progress_bar = tqdm(range(len(self.valid_dataloader)),
+                            disable=not is_local_main_process(),
                             smoothing=0)
         self.model.eval()
         losses = []
@@ -485,19 +477,14 @@ class AtorchTrainer:
         accumulated_task_num_np = np.zeros(len(self.ID2TASK))
         accumulated_step = 0
         for step, batch in enumerate(self.valid_dataloader):
-            # if step >= self.args.valid_iters:
-            if step >= self.args.valid_iters and (self.args.total_model_param >= 1e9 or self.args.train_mode == 'sst'):
+            if step >= self.args.valid_iters:
                 break
             with torch.no_grad():
-                # batch = {k: v.to(self.device) for k, v in batch.items()}
-                # batch = self.prepare_input(batch, self.device)
-                # outputs = self.model(**batch)
                 outputs = self.model(
                     input_ids=batch['input_ids'].to(self.device),
                     attention_mask=batch['attention_mask'].to(self.device),
                     position_ids=batch['position_ids'].to(self.device)
                 )
-                # loss = outputs["loss"]
                 loss, task_loss, task_num = self.loss_func(outputs, batch, self.args.weighted_loss_mode)
 
                 repeated_loss = loss.repeat(
@@ -516,7 +503,7 @@ class AtorchTrainer:
                 task_num = task_num.cpu().numpy()
                 accumulated_task_loss_np += task_loss
                 accumulated_task_num_np += task_num
-            
+
             accumulated_step += 1
             progress_bar.update(1)
 
@@ -580,7 +567,6 @@ class AtorchTrainer:
         # Make sure we don't delete the best model.
         if self.best_model_checkpoint is not None:
             best_model_index = checkpoints_sorted.index(str(Path(self.best_model_checkpoint)))
-            # for i in range(best_model_index, len(checkpoints_sorted) - 2):
             for i in range(best_model_index, len(checkpoints_sorted) - 1):
                 checkpoints_sorted[i], checkpoints_sorted[i + 1] = checkpoints_sorted[i + 1], checkpoints_sorted[i]
         print_rank_0(f'checkpoints sorted list: {checkpoints_sorted}')
@@ -651,7 +637,7 @@ class AtorchTrainer:
                 torch.save(state_dict, os.path.join(
                     output_dir, "pytorch_model.bin"))
         logger.info(f"Saving peft model done.")
-    
+
     def _save_model(self, output_dir=None, state_dict=None):
         # If we are executing this function, we are the process zero, so we don't check for that.
         output_dir = output_dir if output_dir is not None else self.args.output_dir
@@ -671,12 +657,9 @@ class AtorchTrainer:
                     state_dict=state_dict,
                     max_shard_size=self.max_shard_size,
                     is_main_process=self.is_rank0())
-                # unwrap_model(self.model).save_pretrained(
-                #     output_dir, state_dict=state_dict, max_shard_size=self.max_shard_size)
             elif isinstance(unwrap_model(self.model), PeftModel):
                 if state_dict is None:
                     state_dict = unwrap_model(self.model).base_model.model.state_dict()
-                    # state_dict = {key: value.bfloat16() if self.args.bf16 else value.half() for key, value in state_dict.items()}
                 # Filter the peft params ...
                 param_keys = list(state_dict.keys())
                 base_model_state_dict = {}
@@ -685,7 +668,6 @@ class AtorchTrainer:
                         # state_dict.pop(key)
                         continue
                     elif PEFT_PARAM_PREFIX in key:
-                        # value = state_dict.pop(key)
                         value = state_dict[key]
                         new_key = key.replace(PEFT_PARAM_PREFIX, "")
                         base_model_state_dict[new_key] = value
@@ -707,10 +689,10 @@ class AtorchTrainer:
                 state_dict = self.model.state_dict()
                 state_dict = {key: value.bfloat16() if self.args.bf16 else value.half() for key, value in state_dict.items()}
             self.model.save_pretrained(
-                    output_dir, 
-                    state_dict=state_dict, 
+                    output_dir,
+                    state_dict=state_dict,
                     max_shard_size=self.max_shard_size)
-        if self.tokenizer is not None:    
+        if self.tokenizer is not None:
             self.tokenizer.save_pretrained(output_dir)
 
         # Good practice: save your training arguments together with the trained model
@@ -721,8 +703,8 @@ class AtorchTrainer:
 
     def _save_atorch_checkpoint(self, output_dir):
 
-        # StateDictType.FULL_STATE_DICT得到完整的模型状态。
-        # FullStateDictConfig指定保存到CPU，仅rank0保存
+        # StateDictType.FULL_STATE_DICT
+        # FullStateDictConfig save to CPU，save on rank 0 only
         save_policy = FullStateDictConfig(offload_to_cpu=True, rank0_only=True)
         with FSDP.state_dict_type(self.model, StateDictType.FULL_STATE_DICT, save_policy):
             model_state_dict = self.model.state_dict()
@@ -754,8 +736,7 @@ class AtorchTrainer:
 
         run_dir = self.args.output_dir
         output_dir = os.path.join(run_dir, checkpoint_folder)
-        # self._save_model(output_dir)
-        # 获取要存的state_dict, 每个rank都要调用
+        # get state_dict, by every rank
         if isinstance(self.model, FSDP):
             save_policy = FullStateDictConfig(offload_to_cpu=atorch.world_size() > 1, rank0_only=atorch.world_size() > 1)
             with FSDP.state_dict_type(self.model, StateDictType.FULL_STATE_DICT, save_policy):
@@ -765,7 +746,7 @@ class AtorchTrainer:
             model_state_dict = unwrap_model(self.model).state_dict()
             optim_state_dict = self.optimizer.state_dict()
         if not self.no_save_atorch_checkpoint:
-            if self.args.peft_type is None or not self.no_save_base_model: 
+            if self.args.peft_type is None or not self.no_save_base_model:
                 if self.is_rank0():
                     os.makedirs(output_dir, exist_ok=True)
                     torch.save(
@@ -784,17 +765,12 @@ class AtorchTrainer:
             self._save_peft_model(output_dir=output_dir)
         else:
             self._save_model(output_dir=output_dir)
-        
-            # if not self.no_save_atorch_checkpoint:
-            #     self._save_atorch_checkpoint(output_dir)
-            # else:
-            #     torch.save(self.optimizer.state_dict(),
-            #             os.path.join(output_dir, OPTIMIZER_NAME))
+
             with warnings.catch_warnings(record=True) as caught_warnings:
                 torch.save(self.lr_scheduler.state_dict(),
                         os.path.join(output_dir, SCHEDULER_NAME))
             reissue_pt_warnings(caught_warnings)
-            
+
             # Save RNG state in non-distributed training
             rng_states = {
                 "python": random.getstate(),
@@ -813,8 +789,6 @@ class AtorchTrainer:
             if torch.distributed.get_world_size() <= 1:
                 torch.save(rng_states, os.path.join(output_dir, "rng_state.pth"))
             else:
-                # torch.save(rng_states, os.path.join(
-                #     output_dir, f"rng_state_{self.args.process_index}.pth"))  # process_index = rank
                 torch.save(rng_states, os.path.join(
                     output_dir, f"rng_state_{self.rank}.pth"))
 
@@ -825,20 +799,7 @@ class AtorchTrainer:
             state = {'global_steps': self.global_steps}
             json.dump(state, open(os.path.join(
                 output_dir, TRAINER_STATE_NAME), 'w'), ensure_ascii=False, indent=2)
-            
-            # if self.files_to_save:
-            #     for name in self.files_to_save:
-            #         if not os.path.exists(name):
-            #             continue
-            #         try:
-            #             if os.path.isfile(name):
-            #                 shutil.copy(name, output_dir)
-            #             elif os.path.isdir(name):
-            #                 shutil.copytree(name, os.path.join(
-            #                     output_dir, os.path.basename(name)))
-            #         except Exception:
-            #             continue
-        
+
         # Determine the new best metric / best model checkpoint
         if metrics is not None and self.args.metric_for_best_model is not None:
             metric_to_check = self.args.metric_for_best_model
@@ -855,18 +816,18 @@ class AtorchTrainer:
                 self.best_metric = metric_value
                 self.best_model_checkpoint = output_dir
                 print_rank_0(f'current best model checkpoint is: {self.best_model_checkpoint}, valid_loss: {self.best_metric}')
-        
+
         if self.is_rank0():
             if self.args.extra_save_by_epoch:
                 print('extra_save_by_epoch')
-                # 如果是每个epoch extra save的，那么每个epoch的checkpoint不会删除，不受save_total_limit的影响，
-                # 而对按step存的，则会只保留save_total_limit个
+                # for epoch saving，checkpoint will not be deleted，not affected by save_total_limit
+                # for step saving，only keep save_total_limit ckpts
                 self._rotate_checkpoints(
                     output_dir=run_dir, prefix=PREFIX_CHECKPOINT_DIR, checkpoint_name_pattern='([0-9]+)$')
             else:
                 self._rotate_checkpoints(
                     output_dir=run_dir, prefix=PREFIX_CHECKPOINT_DIR)
-            # 只保留最新一个checkpoint的atorch checkpoint
+            # only save atorch checkpoint of the latest checkpoint
             self._clean_atorch_checkpoints(
                 output_dir=run_dir, prefix=PREFIX_CHECKPOINT_DIR)
 
@@ -874,7 +835,7 @@ class AtorchTrainer:
         torch.distributed.barrier()
         logger.info('Save finished')
 
-    
+
     def train(self, **kwargs):
         logger.info("***** Running training *****")
         logger.info(f"  Num examples = {len(self.train_dataset)}")
@@ -887,8 +848,8 @@ class AtorchTrainer:
             f"  Gradient Accumulation steps = {self.args.gradient_accumulation_steps}")
         logger.info(f"  Total optimization steps = {self.args.max_steps}")
 
-        progress_bar = tqdm(range(self.args.max_steps), 
-                            disable=not is_local_main_process(), 
+        progress_bar = tqdm(range(self.args.max_steps),
+                            disable=not is_local_main_process(),
                             smoothing=0)
         training_time = 0
 
@@ -900,10 +861,9 @@ class AtorchTrainer:
             state = json.load(
                 open(os.path.join(self.resume_checkpoint_dir, TRAINER_STATE_NAME), 'r'))
             self.global_steps = state.get('global_steps', 0)
-            # progress_bar.update(self.global_steps)
             progress_bar = tqdm(range(self.args.max_steps),
                                 disable=not is_local_main_process(),
-                                initial=self.global_steps, 
+                                initial=self.global_steps,
                                 smoothing=0)
             start_epoch = self.global_steps // self.num_update_steps_per_epoch
             steps_trained_in_current_epoch = self.global_steps % self.num_update_steps_per_epoch
@@ -930,28 +890,22 @@ class AtorchTrainer:
                 if step == 0:
                     print_rank_0(f"step 1 batch shape: {batch['input_ids'].shape},\n"
                                  f"last 10 tokens: {batch['input_ids'][:, -10:]}")
-                                # f"last 10 loss mask: {batch['loss_mask'][:, -10:]}"
                     print_rank_0(f"first 1000 tokens")
                     for pt in range(10):
                         print_rank_0(f"{batch['input_ids'][:, 10 * pt:10 * pt + 10]}")
-                        # print_rank_0(f"{batch['loss_mask'][:, 10 * pt:10 * pt + 10]}")
-                # self.global_steps += 1
                 skipped = False
                 self.model.train()
                 step_start = time.time()
                 if steps_trained_in_current_epoch and step < steps_trained_in_current_epoch:
                     continue
-                steps_trained_in_current_epoch = 0  # 恢复到上一次的steps in current epoch后,需要置零,否则后面的每个epoch都会跳过前面的steps
-                # batch = self.prepare_input(batch, self.device)
+                steps_trained_in_current_epoch = 0
                 outputs = self.model(
                     input_ids=batch['input_ids'].to(self.device),
                     attention_mask=batch['attention_mask'].to(self.device),
                     position_ids=batch['position_ids'].to(self.device),
-                    # labels=batch['labels'],
                 )
-                
+
                 loss, task_loss, task_num = self.loss_func(outputs, batch, self.args.weighted_loss_mode)
-                # print(f'rank: {self.rank}, loss: {loss}, task loss: {task_loss}')
 
                 loss = loss / self.args.gradient_accumulation_steps
                 loss_tensor = torch.zeros(
@@ -974,7 +928,7 @@ class AtorchTrainer:
                 self.global_steps += 1
                 if step % self.args.gradient_accumulation_steps == 0 or step == len(self.train_dataloader) - 1:
                     if self.args.max_grad_norm is not None and self.args.max_grad_norm > 0:
-                        # 如果是fp16，需要unscale。如果是bf16，self.optimizer里没有unscale这个方法
+                        # unscale for fp16
                         try:
                             self.optimizer.unscale_()
                         except Exception:
@@ -990,21 +944,17 @@ class AtorchTrainer:
                         print(f'skipped != overflow!!!!!!!!!!!!!!!!')
                     if not overflow:
                         self.lr_scheduler.step()
-                    # if not skipped:
-                    #     self.optimizer.step()
-                    #     self.lr_scheduler.step()
 
                     self.optimizer.zero_grad()
 
                     step_time = time.time() - step_start
-                    step_tflops = get_tflops_megatron(self.args.total_model_param, self.args.hidden_size, self.args.num_hidden_layers, 
+                    step_tflops = get_tflops_megatron(self.args.total_model_param, self.args.hidden_size, self.args.num_hidden_layers,
                                                       self.args.per_device_train_batch_size, self.args.seq_length, step_time)
                     step_speed = get_computation_speed(self.args.per_device_train_batch_size, self.args.seq_length, step_time)
                     progress_bar.update(1)
 
                     if self.global_steps % self.args.log_interval == 0:
                         print_rank_0(f'max memory allocated: {torch.cuda.max_memory_allocated()}')
-                        # print_rank_0(f'max memory allocated: {torch.cuda.max_memory_reserved()}')
                         if (self.global_steps - self.last_step_logged - self.skipped_steps) == 0:
                             self.accumulated_loss = 0
                             self.skipped_steps = 0
@@ -1015,14 +965,11 @@ class AtorchTrainer:
                             print_rank_0(f'this log interval is skipped!')
                             continue
 
-                        # train_loss = round(
-                        #     self.accumulated_loss / (self.global_steps - self.last_step_logged), 4)
                         train_loss = round(
                             self.accumulated_loss / (self.global_steps - self.last_step_logged - self.skipped_steps), 4)
 
-                        # train_task_loss = self.accumulated_task_loss / (self.global_steps - self.last_step_logged)
                         train_task_loss = self.accumulated_task_loss / (self.global_steps - self.last_step_logged - self.skipped_steps)
-                        
+
                         if is_global_main_process():
                             logger.info('log point')
                             logger.info(f'skipped steps: {self.skipped_steps}')
@@ -1039,7 +986,7 @@ class AtorchTrainer:
                         if torch.is_tensor(learning_rate):
                             learning_rate = learning_rate.item()
                         logs = {'train_loss': train_loss,
-                                'epoch': self.epoch, 
+                                'epoch': self.epoch,
                                 'learning_rate': learning_rate,
                                 }
                         per_task_train_loss = {self.ID2TASK[i]+'_loss': train_task_loss[i].item() for i in range(len(self.ID2TASK))}
@@ -1050,7 +997,7 @@ class AtorchTrainer:
                             self.log(logs, step=self.global_steps,
                                      phase='train')
                             logger.info(f"tflops: {step_tflops} | token speed: {step_speed:.2f} tokens/gpu/s | sample speed: {step_speed / self.args.seq_length:.2f}")
-                    
+
                         if 'steps' in self.args.evaluation_strategy.split(',') and self.global_steps % self.args.valid_interval == 0:
                             exit_flag = False
                             del loss, outputs
@@ -1058,11 +1005,11 @@ class AtorchTrainer:
                             print_rank_0(f'Global steps: {self.global_steps} evaluate metrics: {metrics}')
                             if self.args.early_stopping_patience > 0:
                                 self.early_stopping(metrics['valid_loss'], self.model)
-                                # 若满足 early stopping 要求
+                                # if early stopping
                                 if self.early_stopping.early_stop:
                                     exit_flag = True
                                     print("Early stopping")
-                                    # 结束模型训练
+                                    # exit model training
                                     break
                         if 'steps' in self.args.save_strategy.split(',') and self.global_steps % self.args.checkpointing_steps == 0:
                             self.save(metrics=metrics)
@@ -1080,15 +1027,15 @@ class AtorchTrainer:
                 metrics = self.evaluate()
                 if self.args.early_stopping_patience > 0:
                     self.early_stopping(metrics['valid_loss'], self.model)
-                    # 若满足 early stopping 要求
+                    # if early stopping
                     if self.early_stopping.early_stop:
                         exit_flag = True
                         print("Early stopping")
-                        # 结束模型训练
+                        # exit model training
                         break
             if 'epoch' in self.args.save_strategy.split(',') or self.args.extra_save_by_epoch:
                 if epoch + 1 < (int(self.args.num_train_epochs) // 3) and self.args.total_model_param < 1e9:
                     continue
                 print_rank_0(f'Global steps: {self.global_steps} | Epoch {epoch + 1} checkpoint metrics: {metrics}')
                 self.save(
-                    suffix=f'{self.global_steps}-{EPOCH_CHECKPOINT_NAME}-{epoch + 1}')  # 不用保留epoch级别的atorch_checkpoint.bin
+                    suffix=f'{self.global_steps}-{EPOCH_CHECKPOINT_NAME}-{epoch + 1}')

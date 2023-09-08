@@ -8,9 +8,9 @@
 
 ## 1. 更新
 
-🔥 MFTCoder在Atorch框架下支持GPTNeoX模型的训练和微调；
+🔥 MFTCoder在Atorch框架下支持GPTNeoX模型的微调；
 
-🔥 MFTCoder支持全量的有监督微调和自监督预训练；
+🔥 MFTCoder支持全量的有监督微调；
 
 🔥 MFTCoder支持LoRA微调；
 
@@ -72,7 +72,7 @@
 
 
 ## 3. 模型训练
-目前 "MFTCoder/mft_atorch" 代码库支持全量参数SST、全量参数指令微调以及LoRA指令微调。
+目前 "MFTCoder/mft_atorch" 代码库支持全量参数指令微调和LoRA指令微调。
 目前仅支持GPTNeoX模型的训练，理论上，HuggingFace上开源的GPTNeoX模型权重，均可使用本项目进行训练。
 
 我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化，详见主目录下的实现。微调训练的入口目录是```train/```, 训练入口文件是```train/run_train.py```, 参数配置存储在启动脚本```train/run_gpt_*.sh```等文件中，方便统一管理和更改。
@@ -86,11 +86,11 @@
 这种方式充分利用了模型并行计算的优势，训练更加高效，且多轮对话中的每个target部分都参与了训练，训练更充分。
 否则，就需要把一个n轮对话，拆分成n条数据，且只计算最后一个target的loss，大大降低了训练效率。
 
-### 3.2 全量SST
+### 3.2 全量SFT
 
-执行如下命令即可进行全量SST：
+执行如下命令即可进行全量SFT：
 ```bash
-sh run_gpt_mpt.sh 10 1 8 5
+sh run_gpt_mft.sh 10 1 8 5
 ```
 
 需注意，启动脚本后的四个参数，分别是：
@@ -101,31 +101,24 @@ sh run_gpt_mpt.sh 10 1 8 5
 
 后面其他的训练方式启动脚本，也同样需要配置这四个参数
 
-### 3.3 全量SFT
-
-执行如下命令即可进行全量SFT：
-```bash
-sh run_gpt_mft.sh 10 1 8 5
-```
-
-### 3.4 LoRA微调
+### 3.3 LoRA微调
 
 执行如下命令即可进行Lora微调：
 ```bash
 sh run_gpt_mft_peft.sh 10 1 8 5
 ```
 
-### 3.5 启动脚本中主要参数说明
+### 3.4 启动脚本中主要参数说明
 ```train/run_gpt_*.sh```中的主要参数说明如下，以下参数可以根据需求进行修改，其他参数建议不做修改：
-- tokenize_mode: 根据实际情况选择"sst"或"sft"。
+- tokenize_mode: 目前仅支持"sft"。
 
-- train_mode: 根据实际情况选择"sst"或"sft"。
+- train_mode: 目前仅支持"sft"。
 
-- load_raw_dataset: 当为True时，会读取jsonl输入，并实时进行tokenization，数据处理完后才开始训练；当为False时，会读取".bin"格式的输入，包括loss_mask的".bin"文件，读取完后即刻开始训练。
+- load_raw_dataset: 需要保持"True"，后续会支持其它模式数据，当前仅支持jsonl输入
 
 - data_paths: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据。
 
-- output_dir：训练输出目录，存储checkpoint、lora_adaptor checkpoint等。
+- output_dir: 训练输出目录，存储checkpoint、lora_adaptor checkpoint等。
 
 - tensorboard_dir: 可以暂时忽略，实际tensorboard存储在output_dir的runs目录下。
 
@@ -133,9 +126,7 @@ sh run_gpt_mft_peft.sh 10 1 8 5
 
 - peft_type: 目前仅支持 lora。
 
-- pretrained_model_path: 预训练模型的本地目录，SST时可不填。
-
-- config_path: SST时需要填入模型config地址，SFT时可不填。
+- pretrained_model_path: 预训练模型的本地目录。
 
 - total_train_batch_size: 所有显卡train的batch size的总和，会根据启动脚本时输入的per gpu batch size自动计算。
 
@@ -165,9 +156,9 @@ sh run_gpt_mft_peft.sh 10 1 8 5
 
 - seed: 随机种子，用于复现实验结果。
 
-- train_iters: 可以暂时设为比较小的数，如10，实际上不会印象训练步数，但会影响在读".bin"文件数据时，train dataset的样本量。
+- train_iters: 可以暂时设为比较小的数，如10，实际上不会影响训练步数，留作后面拓展读取其他形式数据集的功能。
 
-- valid_iters: 可以暂时设为比较小的数，如10，实际上不会印象训练步数，但会影响在读".bin"文件数据时，valid dataset的样本量。
+- valid_iters: 可以暂时设为比较小的数，如10，实际上不会影响训练步数，留作后面拓展读取其他形式数据集的功能。
 
 - evaluation_strategy: 训练期间evaluate的策略，"steps"表示每隔"valid_interval"步做一次evaluate，"epoch"表示每隔一个epoch做一次evaluate，支持同时开启。
 

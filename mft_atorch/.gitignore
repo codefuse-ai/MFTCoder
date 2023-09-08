@@ -1,0 +1,7 @@
+*.log
+*/__pycache__/
+*.pyc
+*.ipynb
+.DS_Store
+.idea/
+evals/

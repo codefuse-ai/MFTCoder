@@ -20,8 +20,6 @@ class GPT2FromRawDataset(torch.utils.data.Dataset):
         name,
         data_prefix,
         input_dataset,
-        # loss_mask_dataset,
-        # num_samples,
         seq_length,
         weighted_loss_mode=None,
         ds_weight=1.0,
@@ -30,7 +28,6 @@ class GPT2FromRawDataset(torch.utils.data.Dataset):
         self.name = name
         self.input_dataset = input_dataset
         self.num_samples = len(self.input_dataset['input_ids'])
-        # self.loss_mask_dataset = loss_mask_dataset
         self.seq_length = seq_length
 
         self.weighted_loss_mode = weighted_loss_mode
@@ -66,7 +63,6 @@ class GPT2FromRawDataset(torch.utils.data.Dataset):
                 f"WARNING in GPT2FromRawDataset: Got index out of bounds error with index {idx} - taking modulo of index instead ({new_idx})"
             )
             return self[new_idx]
-
 
 
 def ds_weights_by_num_docs_sft(l, alpha=0.3):
@@ -206,9 +202,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
         files = os.listdir(data_prefixes[dataset_index])
         cur_dataset_input_ids = []
         cur_dataset_loss_mask = []
-        cur_dataset_global_num_samples = 0
-        cur_dataset_num_tokens = 0
-        # 同一数据集下可能有多个jsonl文件
+        # support multiple jsonl files under task dir
         for file in files:
             file_name = data_prefixes[dataset_index] + '/' + file
             if os.path.isdir(file_name):
@@ -223,7 +217,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
                         continue
                     data = json.loads(line.rstrip('\n\r'))
                     features, length = encoder.encode(data)
-                    # 一个document可能编码出多个sample
+                    # may have more samples
                     for idx in range(len(features['input_ids'])):
                         cur_dataset_input_ids.append(features['input_ids'][idx])
                         cur_dataset_loss_mask.append(features['loss_mask'][idx])
@@ -243,13 +237,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
                         i += 1
                         cur_dataset_input_ids.append(features['input_ids'][idx])
                         cur_dataset_loss_mask.append(features['loss_mask'][idx])
-                        
-
-                # print(f'features: {features}')
                 fin.close()
-
-        # num_tokens.append(cur_dataset_num_tokens)
-        # effective_token_rate.append(cur_dataset_num_tokens / (len(cur_dataset_loss_mask) * args.seq_length))
         
         cur_dataset_input_ids = np.array(cur_dataset_input_ids, dtype=np.float32)
         cur_dataset_loss_mask = np.array(cur_dataset_loss_mask, dtype=np.float32)
@@ -269,7 +257,6 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
         local_train_num += train_num
         local_valid_num += (cur_dataset_sample_num - train_num)
 
-        # "weight"字段会在getitem的时候获取
         cur_train_dataset = {'input_ids': cur_train_input_ids,
                              'loss_mask': cur_train_loss_mask
                         }
@@ -326,7 +313,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
     print(f"> train sample weights in rank {global_rank}: {train_sample_weights}")
     print(f"> valid sample weights in rank {global_rank}: {valid_sample_weights}")
 
-    # 重写global_train_num和global_valid_num
+    # recompute global_train_num and global_valid_num
     
     torch.distributed.barrier()
     device = f"cuda:{local_rank}"

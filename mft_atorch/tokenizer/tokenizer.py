@@ -79,12 +79,6 @@ def _vocab_size_with_padding(orig_vocab_size, args):
         " > padded vocab (size: {}) with {} dummy tokens "
         "(new size: {})".format(orig_vocab_size, after - orig_vocab_size, after)
     )
-    # if args.rank == 0:
-    #     print(
-    #         " > padded vocab (size: {}) with {} dummy tokens "
-    #         "(new size: {})".format(orig_vocab_size, after - orig_vocab_size, after),
-    #         flush=True,
-    #     )
     return after
 
 

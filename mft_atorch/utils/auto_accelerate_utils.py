@@ -21,9 +21,9 @@ def get_task_mask(task_id):
 
 
 def get_task_loss(task_losses, task_id):  # TODO
-    # 固定一个打印顺序
+    # Fix a printing order.
     task_loss_per_batch = torch.zeros(len(ID2TASK)).to(device=task_id.device)
-    # 统计每个task出现次数
+    # Count the occurrences of each task.
     task_num_per_batch = torch.zeros(len(ID2TASK)).to(device=task_id.device)
     for i in range(len(task_id)):
         task_num_per_batch[task_id[i][0]] += 1
@@ -88,8 +88,8 @@ def loss_func_mft(outputs, inputs, weighted_loss_mode):
         else:
             loss = torch.sum(losses.view(-1) * loss_mask.view(-1)) / loss_mask.sum()
 
-    # 固定一个打印顺序
-    task_loss = torch.zeros(len(ID2TASK)).to(device=task_id.device)  # 每个任务的loss
+    # Fix a printing order.
+    task_loss = torch.zeros(len(ID2TASK)).to(device=task_id.device)  # per task loss
     task_num = torch.zeros(len(ID2TASK)).to(device=task_id.device)
     # unique_id = torch.unique(task_id)
     for i, w in enumerate(unique_id):
@@ -140,10 +140,6 @@ def get_ltor_masks_and_position_ids(data):
 def prepare_gpt_input(batch, device):
     batch = {k: v.to(device=device, non_blocking=True) for k, v in batch.items()}
 
-    # input_ids = batch['input_ids'].long()
-
-    # batch['input_ids'] = input_ids[:, :-1].contiguous().to(device=device)
-    # batch['labels'] = input_ids[:, 1:].contiguous().to(device=device)
     if 'loss_mask' in batch and 'labels' not in batch:
     # if 'loss_mask' in batch:
         print_rank_0('loss mask in batch')
@@ -206,7 +202,6 @@ class DataCollatorForMFTDataset(object):
             loss_mask = torch.tensor(np.array(loss_mask))
             if self.use_dynamic_padding:
                 last_one_pos = (loss_mask == 1).long().cumsum(dim=1).argmax(dim=1)
-                # 取所有行的位置的最大值
                 max_pos = last_one_pos.max().item() + 1
             else:
                 max_pos = loss_mask.shape[-1]

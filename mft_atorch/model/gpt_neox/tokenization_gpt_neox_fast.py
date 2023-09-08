@@ -19,9 +19,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 from tokenizers import pre_tokenizers
 
 from transformers import PreTrainedTokenizerFast
-# from ...tokenization_utils_fast import PreTrainedTokenizerFast
 from transformers.utils import logging
-# from ...utils import logging
 
 
 if TYPE_CHECKING:

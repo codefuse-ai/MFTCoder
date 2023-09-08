@@ -36,16 +36,14 @@ from torch.distributed.fsdp import (
 )
 
 from utils.common_utils import (
-    is_local_main_process, generate_task_id, print_rank_0, is_old_version, 
+    is_local_main_process, generate_task_id, print_rank_0, is_old_version,
     atorch_init_distributed, atorch_reset_distributed, TASK2ID, ID2TASK,
     get_rank, get_world_size
 )
 from utils.auto_accelerate_utils import DataCollatorForMFTDataset, loss_func_mft
 from arguments.get_arguments import parse_args
-from data.get_data_from_hf import get_hf_dataset, preprocess_hf_datasets
 from model.build_model import setup_model
-from data.data_utils import build_datasets
-from data.gpt2_multi_task_dataset import GPT2MultiTaskDataset, load_dataset_from_jsonl
+from data.gpt2_multi_task_dataset import load_dataset_from_jsonl
 from train.trainer.atorch_trainer import AtorchTrainer
 from pathlib import Path
 
@@ -71,8 +69,8 @@ def main():
     # If passed along, set the training seed now.
     if args.seed is not None:
         set_seed(args.seed)
-    
-    generate_task_id(args.data_paths, args.train_mode)  # 生成TASK2ID, ID2TASK字典
+
+    generate_task_id(args.data_paths, args.train_mode)  # generate TASK2ID, ID2TASK mapping
     print(TASK2ID)
     print(ID2TASK)
 
@@ -81,7 +79,7 @@ def main():
 
     train_dataset, dataloader_args = None, None
     train_dataloader, valid_dataloader, test_dataloader = None, None, None
-    
+
     args.world_size = get_world_size()
     global_rank = get_rank()
     print(f'world_size: {args.world_size}, global_rank: {global_rank}')
@@ -90,23 +88,14 @@ def main():
         print_rank_0('load raw dataset')
         if args.model_type in ['gpt_neox']:
             train_dataset, valid_dataset = load_dataset_from_jsonl(args, tokenizer, shard_data=True, world_size=args.world_size, global_rank=global_rank)
-        # TODO: glm
 
         if train_dataset is not None:
             args.do_train = True
         if valid_dataset is not None:
             args.do_valid = True
-    elif args.load_hf_dataset:
-        print_rank_0('load huggingface dataset')
-        hf_datasets = get_hf_dataset(args)
-        lm_datasets = preprocess_hf_datasets(args, hf_datasets, tokenizer, logger)
-        train_dataset, valid_dataset = lm_datasets["train"], lm_datasets["validation"]
     else:
-        print_rank_0('load tokenized dataset')
-        train_dataset, valid_dataset, test_dataset = build_datasets(args=args)
-        print_rank_0(f'number of samples in train dataset: {len(train_dataset)}, shape: {train_dataset.size}')
-        print_rank_0(f'number of samples in valid dataset: {len(valid_dataset)}, shape: {valid_dataset.size}')
-    
+        print_rank_0('please set load_raw_dataset to True and rerun')
+
     if args.resume_from_checkpoint == 'true':
         logger.info(f'Resume from {args.output_dir}')
         resume_from_checkpoint = True
@@ -142,8 +131,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # atorch.init_distributed("nccl")
     atorch_init_distributed("nccl")
     main()
-    # atorch.reset_distributed()
     atorch_reset_distributed()

@@ -14,11 +14,6 @@ def parse_args():
         help="If passed, will load raw dataset.",
     )
     parser.add_argument(
-        "--load_hf_dataset",
-        action="store_true",
-        help="If passed, will load raw dataset.",
-    )
-    parser.add_argument(
         "--data_paths",
         type=str,
         default=None,
@@ -532,12 +527,6 @@ def parse_args():
         type=int,
         help="num limitation of step strategy checkpoint file",
         required=True,
-    )
-    parser.add_argument(
-        "--glm_mask",
-        type=str,
-        default="[gMASK]",
-        help="Mask to use in glm",
     )
     parser.add_argument(
         "--metric_for_best_model",

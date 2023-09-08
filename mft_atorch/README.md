@@ -8,9 +8,9 @@
 
 ## 1. Updates
 
-🔥 MFTCoder supports training and fine-tuning of the GPTNeoX model under the Atorch framework.
+🔥 MFTCoder supports fine-tuning of the GPTNeoX model under the Atorch framework.
 
-🔥 MFTCoder supports both fully supervised fine-tuning and self-supervised pretraining.
+🔥 MFTCoder supports both fully supervised fine-tuning.
 
 🔥 MFTCoder supports LoRA using Atorch Framework.
 
@@ -75,7 +75,7 @@ Here is an example format of the concatenated string:
 When applying inference, you always make your input string end with "<|role_start|>bot<|role_end|>" to ask the model generating answers.
 
 ## 3. Model Training
-Currently, the "MFTCoder/mft_atorch" code repository supports full-parameter SST, full-parameter instruction fine-tuning, and LoRA instruction fine-tuning.
+Currently, the "MFTCoder/mft_atorch" code repository supports fully instruction fine-tuning, and LoRA instruction fine-tuning.
 Currently, only training of the GPTNeoX model is supported. In theory, the pretrained weights of the GPTNeoX model available on HuggingFace can be used for training with this project.
 
 We have extracted various components used in training to facilitate future extension and optimization. Please refer to the implementation in the main directory for more details. The entry directory for fine-tuning training is ```train/```, and the entry file for training is ```train/run_train.py```. The parameter configurations are stored in the launch scripts such as ```train/run_gpt_*.sh```, making it easier to manage and modify them uniformly.
@@ -92,10 +92,10 @@ During the calculation of loss, we use a ```loss mask``` to ensure that the loss
 This approach takes full advantage of the benefits of model parallelism, making training more efficient. It also leverages the characteristic of decoder-only models with left-to-right attention. 
 By including all target parts from multiple turns in a single training iteration, the training process becomes more efficient.
 
-### 3.2 Fully Self-Supervised Pretraining
-To perform fully SST, you can execute the following command:
+### 3.2 Fully Supervised Fine-Tuning
+To perform fully SFT, you can execute the following command:
 ```bash
-sh run_gpt_mpt.sh 10 1 8 5
+sh run_gpt_mft.sh 10 1 8 5
 ```
 Please note that the four parameters after the launch script have the following meanings:
 - The first parameter is the per GPU batch size.
@@ -105,26 +105,20 @@ Please note that the four parameters after the launch script have the following 
 
 For other training modes, the same four parameters need to be configured in the launch script.
 
-### 3.3 Fully Supervised Fine-Tuning
-To perform fully SFT, you can execute the following command:
-```bash
-sh run_gpt_mft.sh 10 1 8 5
-```
-
-### 3.4 LoRA Supervised Fine-Tuning
+### 3.3 LoRA Supervised Fine-Tuning
 To perform LoRA SFT, you can execute the following command:
 ```bash
 sh run_gpt_mft_peft.sh 10 1 8 5
 ```
 
-### 3.5 Parameter Explanations
+### 3.4 Parameter Explanations
 The main parameter explanations for the ```train/run_gpt_*.sh``` are as follows. You can modify these parameters according to your needs:
 
-- **tokenize_mode**: Choose "sst" or "sft" based on the actual situation.
+- **tokenize_mode**: Need to be 'sft' at present.
 
-- **train_mode**: Choose "sst" or "sft" based on the actual situation.
+- **train_mode**: Need to be 'sft' at present.
 
-- **load_raw_dataset**: When True, it reads the jsonl input and performs tokenization in real-time before starting the training process. When False, it reads the ".bin" formatted input, including the ".bin" file for loss_mask, and starts training immediately after reading.
+- **load_raw_dataset**: Need to be 'True' at present. Only JSONL format is supported.
 
 - **data_paths**: "[path1,path2,path3]" Input data addresses, a string enclosed in [], with different paths separated by commas (,). Each path is a directory where the last level of the directory name is considered as the task name. Each task directory contains 1 to multiple jsonl data files.
 
@@ -136,9 +130,7 @@ The main parameter explanations for the ```train/run_gpt_*.sh``` are as follows.
 
 - **peft_type**: Currently only supports lora.
 
-- **pretrained_model_path**: Local directory of the pre-trained model. Not required for SST.
-
-- **config_path**: Model config address required for SST, not required for SFT.
+- **pretrained_model_path**: Local directory of the pre-trained model. 
 
 - **total_train_batch_size**: The total batch size for training across all GPUs, calculated automatically based on per gpu batch size entered in the script.
 
@@ -168,9 +160,9 @@ The main parameter explanations for the ```train/run_gpt_*.sh``` are as follows.
 
 - **seed**: Random seed used for reproducibility of experimental results.
 
-- **train_iters**: Can be temporarily set to a small value, such as 10, which does not affect the actual number of training steps but can affect the number of samples in the train dataset when reading ".bin" data.
+- **train_iters**: Can be temporarily set to a small value, such as 10, which does not affect the actual number of training steps, kept for future expansion to support reading datasets in other formats.
 
-- **valid_iters**: Can be temporarily set to a small value, such as 10, which does not affect the actual number of training steps but can affect the number of samples in the valid dataset when reading ".bin" data.
+- **valid_iters**: Can be temporarily set to a small value, such as 10, which does not affect the actual number of training steps, kept for future expansion to support reading datasets in other formats.
 
 - **evaluation_strategy**: Evaluation strategy during training. "steps" means to evaluate every "valid_interval" steps, "epoch" means to evaluate every epoch. Both can be enabled simultaneously.
 

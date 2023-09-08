@@ -123,7 +123,7 @@ The main parameter explanations for the ```configs/*_train_config``` are as foll
 
 - **data_paths**: Input data paths in a String of list format, e.g., "[path1,path2,path3]". Each path represents a task directory and each task directory contains one or more JSONL data files.
 
-- **output_dir**: Training output directory to store checkpoints, Lora adapter checkpoints, etc.
+- **output_dir**: Training output directory to store checkpoints, Lora adapter, etc.
 
 - **tb_dir**: TensorBoard directory to store logs, metrics, etc.
 

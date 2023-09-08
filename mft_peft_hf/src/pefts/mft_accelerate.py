@@ -100,7 +100,7 @@ class DataCollatorForMFTDataset(object):
         loss_mask = torch.tensor(np.array(loss_mask))
         if self.args.use_dynamic_padding:
             last_one_pos = (loss_mask == 1).long().cumsum(dim=1).argmax(dim=1)
-            # 取所有行的位置的最大值
+            # get last non-padding position
             max_pos = last_one_pos.max().item() + 1
         else:
             max_pos = loss_mask.shape[-1]
@@ -110,11 +110,6 @@ class DataCollatorForMFTDataset(object):
         # print(f"shape of input_ids: {input_ids.shape}")
         result_batch['input_ids'] = input_ids[:, :max_pos-1].contiguous()
         result_batch['labels'] = input_ids[:, 1:max_pos].contiguous()
-
-
-        if self.args.weighted_loss_mode and weights is not None:
-            weights = torch.tensor(np.array(weights))
-            # result_batch['loss_mask'] *= weights
 
         # Get the masks and position ids.
         result_batch['attention_mask'], result_batch['position_ids'] = get_ltor_masks_and_position_ids(
@@ -192,17 +187,17 @@ def main():
     t0 = time.time()
     parser = get_configs()
     train_config_file = parser.train_config
-    # 读取配置文件
+    # get configs
     with open(train_config_file, 'r') as f:
         train_config = json.load(f)
 
     args = argparse.Namespace(**train_config)
     
-    # 读取制定的eos token和 pad token
+    # get eos token和 pad token
     args.eos_token = MODEL_SPECIAL_TOKENS[args.model_type]['eos_token']
     args.pad_token = MODEL_SPECIAL_TOKENS[args.model_type]['pad_token']
 
-    # 调整args
+    # refactor args
     if parser.data_paths:
         args.data_paths = parser.data_paths
     if parser.output_dir:
@@ -217,7 +212,7 @@ def main():
         print(f"[WARNING]peft_type is qlora but quantization is not 4bit or 8bit, setting it to 4bit")
         args.quantization = '4bit'
     
-    # 定义accelerator
+    # define accelerator
     accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps)
     pprint_args(args, accelerator)
 
