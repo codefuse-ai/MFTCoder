@@ -12,11 +12,11 @@
 
 🔥 MFTCoder supports both fully supervised fine-tuning.
 
-🔥 MFTCoder supports LoRA using Atorch Framework.
+🔥 MFTCoder supports LoRA using the Atorch Framework.
 
 ## 2. Data Format
 ### 2.1 Training Data Format
-The training data is in a uniformed JSONL format, in which each line of data has the following JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on specific needs. 
+The training data is in a uniformed JSONL format, in which each line of data has the following JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on the specific need. 
 
 ```json
 {
@@ -53,7 +53,7 @@ The training data is in a uniformed JSONL format, in which each line of data has
 ```
 
 ### 2.2 Inference Data Format
-The inference string is a string concatenated by conversation data(system, human and bot contents) in the training data format. 
+The inference data contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
 It is used as the data "seen"(before tokenization) by the model in training process.
 It is used as input during the inference process as well.
 Here is an example format of the concatenated string:
@@ -72,27 +72,26 @@ Here is an example format of the concatenated string:
 <|role_start|>bot<|role_end|>{Bot output to be genreated}</s>
 """
 ```
-When applying inference, you always make your input string end with "<|role_start|>bot<|role_end|>" to ask the model generating answers.
+When applying inference, you always make your input string end with "<|role_start|>bot<|role_end|>" to request the model generating answers.
 
 ## 3. Model Training
-Currently, the "MFTCoder/mft_atorch" code repository supports fully instruction fine-tuning, and LoRA instruction fine-tuning.
-Currently, only training of the GPTNeoX model is supported. In theory, the pretrained weights of the GPTNeoX model available on HuggingFace can be used for training with this project.
+Currently, the "MFTCoder/mft_atorch" code repository supports fully instruction fine-tuning, and LoRA instruction fine-tuning. Only the training of the GPTNeoX model is supported. In theory, the pretrained weights of the GPTNeoX model available on HuggingFace can be used for training within this project.
 
 We have extracted various components used in training to facilitate future extension and optimization. Please refer to the implementation in the main directory for more details. The entry directory for fine-tuning training is ```train/```, and the entry file for training is ```train/run_train.py```. The parameter configurations are stored in the launch scripts such as ```train/run_gpt_*.sh```, making it easier to manage and modify them uniformly.
 
 ### 3.1 Tokenization
-During training, we concatenate multi-turn dialogues into the following format (also known as the inference string format mentioned earlier) and then tokenize it. In this format, <|role_start|>human<|role_end|> represents the human input prompt, <|role_start|>bot<|role_end|> represents the bot output prompt, and </s> represents the eos_token.
+During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, <|role_start|>human<|role_end|> represents the human input (i.e., prompt), <|role_start|>bot<|role_end|> represents the bot output, and </s> represents the eos_token.
 You can modify and replace the eos_token based on different models' requirements.
 
 Here is an example of the concatenated format with prompts:
 ```
 "<|role_start|>human<|role_end|>input1</s>target1</s>input2</s>target2</s>...
 ```
-During the calculation of loss, we use a ```loss mask``` to ensure that the loss from the input part does not contribute to parameter updates. Only the loss from the ```target</s>``` part is used for updating parameters.
+During the calculation of loss, we use a ```loss mask``` to ensure that the loss from the input part does not contribute to the parameter updates. Only the loss from the ```target</s>``` part is used for updating parameters.
 This approach takes full advantage of the benefits of model parallelism, making training more efficient. It also leverages the characteristic of decoder-only models with left-to-right attention. 
 By including all target parts from multiple turns in a single training iteration, the training process becomes more efficient.
 
-### 3.2 Fully Supervised Fine-Tuning
+### 3.2 Fully Supervised Fine-Tuning (SFT)
 To perform fully SFT, you can execute the following command:
 ```bash
 sh run_gpt_mft.sh 10 1 8 5
