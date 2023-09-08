@@ -39,12 +39,12 @@
 
 
 ## 新闻
-🔥🔥🔥 [2023/09/07]MFTCoder微调的模型**CodeFuse-CodeLlama-34B**在[HumanEval Benchmarks](https://github.com/openai/human-eval)的Python **pass@1** 取得了**74.4%**（greedy decoding）的开源SOTA成绩。
+🔥🔥🔥 [2023/09/07]MFTCoder微调的模型**CodeFuse-CodeLlama-34B**在[HumanEval Benchmarks](https://github.com/openai/human-eval)的Python **Pass@1** 取得了**74.4%**（greedy decoding）的开源SOTA成绩。
 
 🔥 [2023/08/26]MFTCoder支持使用LoRA/QLoRA对Code Llama、Llama、Llama2、StarCoder、ChatGLM2、CodeGeeX2、Qwen和GPT-NeoX模型进行微调。
 
 ### HumanEval表现
-| 模型                          | HumanEval(pass@1) |   日期    |
+| 模型                          | HumanEval(Pass@1) |   日期    |
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
