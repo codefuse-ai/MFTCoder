@@ -81,8 +81,8 @@
 - 支持QLoRA低成本高效指令微调、LoRA高效指令微调。
 - 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
 - 支持lora与base model进行权重合并，推理更便捷。
-- 整理并开源2个指令微调数据集：[CodeFuse13B-evol-instruction-4K](https://huggingface.co/datasets/codefuse/Evol-instruction-66k)和[CodeFuse-CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse/CodeExercise-Python-27k)。
-- 开源2个[Codefuse系列指令微调模型权重]：[CodeFuse-13B](https://huggingface.co/codefuse/CodeFuse-13B)和[CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse/CodeFuse-CodeLlama-34B)。
+- 整理并开源2个指令微调数据集：[Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)和[CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k)。
+- 开源2个[Codefuse系列指令微调模型权重]：[CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)和[CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)。
 
 
 
@@ -106,8 +106,8 @@ sh init_env.sh
 
 | 模型                                                            | 基座模型                 | 训练数据 | Batch Size | Seq Length |
 |---------------------------------------------------------------|----------------------|------|------------|------------|
-| [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse/) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| [🔥 CodeFuse-13B](https://huggingface.co/codefuse/)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
+| [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
 
 
 
@@ -116,8 +116,8 @@ sh init_env.sh
 
 | 数据集                                                           | 介绍                                                                 |
 |---------------------------------------------------------------|--------------------------------------------------------------------|
-| [⭐ Evol-instruction-66k](https://huggingface.co/codefuse/)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
-| [⭐ CodeExercise-Python-27k](https://huggingface.co/codefuse/) | 基于chatgpt生成的高质量python练习题数据                                         |
+| [⭐ Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
+| [⭐ CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k) | 基于chatgpt生成的高质量python练习题数据                                         |
 
 
 
