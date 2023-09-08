@@ -40,12 +40,12 @@
 
 
 ## News
-🔥🔥🔥 [2023/09/07]We released **CodeFuse-CodeLlama-34B**, which achieves the **74.4% Python pass@1** (greedy decoding) and surpasses GPT4 (2023/03/15) and ChatGPT-3.5 on the [HumanEval Benchmarks](https://github.com/openai/human-eval).
+🔥🔥🔥 [2023/09/07]We released **CodeFuse-CodeLlama-34B**, which achieves the **74.4% Python Pass@1** (greedy decoding) and surpasses GPT4 (2023/03/15) and ChatGPT-3.5 on the [HumanEval Benchmarks](https://github.com/openai/human-eval).
 
 🔥 [2023/08/26]We released MFTCoder which supports finetuning Code Llama, Llama, Llama2, StarCoder, ChatGLM2, CodeGeeX2, Qwen, and GPT-NeoX models with LoRA/QLoRA.
 
 ### HumanEval Performance
-| Model                       | HumanEval(pass@1) |  Date   | 
+| Model                       | HumanEval(Pass@1) |  Date   | 
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
