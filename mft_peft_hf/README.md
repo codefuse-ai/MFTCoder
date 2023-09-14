@@ -92,11 +92,11 @@ Configurations are stored in the ```mft_peft_hf/src/pefts/configs``` directory f
 
 ### 3.1 Tokenization
 During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, <|role_start|>human<|role_end|> represents the human input (i.e., prompt), <|role_start|>bot<|role_end|> represents the bot output, and </s> represents the eos_token.
-You can modify and replace the eos_token based on different models' requirements.
+You can modify and ```</s>``` replace the eos_token based on different models' requirements.
 
 Here is an example of the concatenated format with prompts:
 ```
-"<|role_start|>human<|role_end|>input1</s>target1</s>input2</s>target2</s>...
+"<|role_start|>human<|role_end|>input1<|role_start|>bot<|role_end|>target1</s><|role_start|>human<|role_end|>input2<|role_start|>bot<|role_end|>target2</s>...
 ```
 During the calculation of loss, we use a ```loss mask``` to ensure that the loss from the input part does not contribute to parameter updates. Only the loss from the ```target</s>``` part is used for updating parameters.
 This approach takes full advantage of the benefits of model parallelism, making training more efficient. It also leverages the characteristic of decoder-only models with left-to-right attention. 
@@ -127,7 +127,7 @@ The main parameter explanations for the ```configs/*_train_config``` are as foll
 
 - **tb_dir**: TensorBoard directory to store logs, metrics, etc.
 
-- **model_type**: Type of the model to train, e.g., "llama|starcoder|chatglm2|qwen|gpt_nex".
+- **model_type**: Type of the model to train, e.g., "llama | starcoder | chatglm2 | qwen | gpt_neox".
 
 - **peft_type**: either "lora" or "qlora".
 
