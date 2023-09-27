@@ -41,6 +41,8 @@
 
 
 ## News
+🔥🔥🔥 [2023/09/26]We are pleased to announce the release of the 4-bit quantized version of CodeFuse-CodeLlama-34B. Despite the quantization process, the model still achieves a remarkable 73.8% accuracy (greedy decoding) on the HumanEval pass@1 metric.
+
 🔥🔥🔥 [2023/09/07]We released **CodeFuse-CodeLlama-34B**, which achieves the **74.4% Python Pass@1** (greedy decoding) and surpasses GPT4 (2023/03/15) and ChatGPT-3.5 on the [HumanEval Benchmarks](https://github.com/openai/human-eval).
 
 🔥 [2023/08/26]We released MFTCoder which supports finetuning Code Llama, Llama, Llama2, StarCoder, ChatGLM2, CodeGeeX2, Qwen, and GPT-NeoX models with LoRA/QLoRA.
@@ -49,6 +51,7 @@
 | Model                       | HumanEval(Pass@1) |  Date   | 
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
+|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
@@ -115,6 +118,7 @@ We are excited to release the following two CodeLLMs trained by MFTCoder, now av
 | Model                                                                                      | Base Model         | Num of examples trained | Batch Size | Seq Length | 
 |--------------------------------------------------------------------------------------------|--------------------|-------------------------|------------|------------|
 | [🔥🔥🔥 CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 600k                    | 80         | 4096       | 
+| [🔥🔥🔥 CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) |    CodeLlama-34b-Python|           |           | 4096       |
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)                         | CodeFuse-13B       | 66k                     | 64         | 4096       |
 
 
