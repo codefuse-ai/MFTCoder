@@ -39,6 +39,8 @@
 
 
 ## 新闻
+🔥🔥🔥 [2023/09/26]CodeFuse-CodeLlama-34B 4bits量化版本发布，量化后模型在HumanEval pass@1指标为73.8% (贪婪解码)。
+
 🔥🔥🔥 [2023/09/07]MFTCoder微调的模型**CodeFuse-CodeLlama-34B**在[HumanEval Benchmarks](https://github.com/openai/human-eval)的Python **Pass@1** 取得了**74.4%**（greedy decoding）的开源SOTA成绩。
 
 🔥 [2023/08/26]MFTCoder支持使用LoRA/QLoRA对Code Llama、Llama、Llama2、StarCoder、ChatGLM2、CodeGeeX2、Qwen和GPT-NeoX模型进行微调。
@@ -47,6 +49,7 @@
 | 模型                          | HumanEval(Pass@1) |   日期    |
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
+|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  | 2023/09 |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
@@ -107,6 +110,7 @@ sh init_env.sh
 | 模型                                                            | 基座模型                 | 训练数据 | Batch Size | Seq Length |
 |---------------------------------------------------------------|----------------------|------|------------|------------|
 | [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| [🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
 
 
