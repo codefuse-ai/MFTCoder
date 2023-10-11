@@ -54,6 +54,7 @@
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
 |**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
+| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
@@ -63,7 +64,7 @@
 | OctoCoder                   |       46.2%       | 2023/08  |
 | StarCoder-15B               |       33.6%       | 2023/05  |
 | LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
-| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/8  |
+
 
 ## Articles
 TBA
