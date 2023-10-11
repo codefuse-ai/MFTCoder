@@ -52,6 +52,7 @@
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
 |**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  | 2023/09 |
+| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
@@ -113,6 +114,7 @@ sh init_env.sh
 |---------------------------------------------------------------|----------------------|------|------------|------------|
 | [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
 | [🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
+| [🔥🔥🔥  CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
 
 
