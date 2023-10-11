@@ -41,6 +41,8 @@
 
 
 ## News
+🔥 [2023-09-27] CodeFuse-StarCoder-15B has been released, achieving a pass@1 (greedy decoding) score of 54.9% on HumanEval.
+
 🔥🔥🔥 [2023/09/26]We are pleased to announce the release of the 4-bit quantized version of CodeFuse-CodeLlama-34B. Despite the quantization process, the model still achieves a remarkable 73.8% accuracy (greedy decoding) on the HumanEval pass@1 metric.
 
 🔥🔥🔥 [2023/09/07]We released **CodeFuse-CodeLlama-34B**, which achieves the **74.4% Python Pass@1** (greedy decoding) and surpasses GPT4 (2023/03/15) and ChatGPT-3.5 on the [HumanEval Benchmarks](https://github.com/openai/human-eval).
