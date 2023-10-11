@@ -63,6 +63,7 @@
 | OctoCoder                   |       46.2%       | 2023/08  |
 | StarCoder-15B               |       33.6%       | 2023/05  |
 | LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
+| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/8  |
 
 ## Articles
 TBA
@@ -121,6 +122,7 @@ We are excited to release the following two CodeLLMs trained by MFTCoder, now av
 |--------------------------------------------------------------------------------------------|--------------------|-------------------------|------------|------------|
 | [🔥🔥🔥 CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 600k                    | 80         | 4096       | 
 | [🔥🔥🔥 CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) |    CodeLlama-34b-Python|           |           | 4096       |
+| [🔥🔥🔥 CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | Starcoder | 600k                    | 80         | 4096       | 
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)                         | CodeFuse-13B       | 66k                     | 64         | 4096       |
 
 
