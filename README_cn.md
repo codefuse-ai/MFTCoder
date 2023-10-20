@@ -39,7 +39,9 @@
 
 
 ## 新闻
-🔥 [2023/09/27] 开源了[CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)模型，在HumanEval pass@1(greedy decoding)上可以达到54.9%。
+🔥🔥 [2023/09/27] 开源了[CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)模型，在HumanEval pass@1(greedy decoding)上可以达到48.8%。相比较与基座模型Qwen-14b提升16%。
+
+🔥🔥 [2023/09/27] 开源了[CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)模型，在HumanEval pass@1(greedy decoding)上可以达到54.9%。
 
 🔥🔥🔥 [2023/09/26] [CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)量化版本发布，量化后模型在HumanEval pass@1指标为73.8% (贪婪解码)。
 
@@ -62,6 +64,7 @@
 | OctoCoder                   |       46.2%       | 2023/08  |
 | StarCoder-15B               |       33.6%       | 2023/05  |
 | LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
+
 
 ## 文章
 敬请期待
