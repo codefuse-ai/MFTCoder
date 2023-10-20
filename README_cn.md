@@ -39,7 +39,7 @@
 
 
 ## 新闻
-🔥🔥 [2023/09/27] 开源了[CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)模型，在HumanEval pass@1(greedy decoding)上可以达到48.8%。相比较与基座模型Qwen-14b提升16%。
+🔥🔥 [2023/10/20] 开源了[CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)模型，在HumanEval pass@1(greedy decoding)上可以达到48.8%。相比较与基座模型Qwen-14b提升16%。
 
 🔥🔥 [2023/09/27] 开源了[CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)模型，在HumanEval pass@1(greedy decoding)上可以达到54.9%。
 
@@ -53,17 +53,18 @@
 | 模型                          | HumanEval(Pass@1) |   日期    |
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
-|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  | 2023/09 |
-| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
+|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
+| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
 | CodeLlama-34b-Python        |       53.7%       | 2023/08  |
+| **CodeFuse-QWen-14B**  |     **48.8%**     | 2023/10  |
 | CodeLlama-34b               |       48.8%       | 2023/08  |
 | GPT-3.5(zero-shot)          |       48.1%       | 2022/11 |
 | OctoCoder                   |       46.2%       | 2023/08  |
 | StarCoder-15B               |       33.6%       | 2023/05  |
-| LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
+| QWen-14B |     32.3%     | 2023/10  |
 
 
 ## 文章
