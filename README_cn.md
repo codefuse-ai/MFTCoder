@@ -119,7 +119,7 @@ sh init_env.sh
 | [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
 | [🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
 | [🔥🔥🔥  CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| [🔥🔥🔥 CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) | Qwen-14b | 1100k                    | 256         | 4096       | 
+| [🔥🔥🔥 CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) | Qwen-14b | 110万                    | 256         | 4096       | 
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
 
 
