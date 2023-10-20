@@ -41,6 +41,8 @@
 
 
 ## News
+🔥🔥 [2023/09/27] [CodeFuse-QWen-15B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) has been released, achieving a pass@1 (greedy decoding) score of 48.8% on HumanEval, which gains 16% absolute improvement over the base model [Qwen-14b](https://huggingface.co/Qwen/Qwen-14B)
+
 🔥🔥 [2023/09/27] [CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) has been released, achieving a pass@1 (greedy decoding) score of 54.9% on HumanEval.
 
 🔥🔥🔥 [2023/09/26]We are pleased to announce the release of the [4-bit quantized version of CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits). Despite the quantization process, the model still achieves a remarkable 73.8% accuracy (greedy decoding) on the HumanEval pass@1 metric.
@@ -54,16 +56,17 @@
 |:----------------------------|:-----------------:|:-------:|
 | **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
 |**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
-| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
 | WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
 | GPT-4(zero-shot)            |       67.0%       | 2023/03  |
 | PanGu-Coder2 15B            |       61.6%       | 2023/08  |
+| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
 | CodeLlama-34b-Python        |       53.7%       | 2023/08  |
+| **CodeFuse-QWen-14B**  |     **48.8%**     | 2023/10  |
 | CodeLlama-34b               |       48.8%       | 2023/08  |
 | GPT-3.5(zero-shot)          |       48.1%       | 2022/11 |
 | OctoCoder                   |       46.2%       | 2023/08  |
 | StarCoder-15B               |       33.6%       | 2023/05  |
-| LLaMA 2 70B(zero-shot)      |       29.9%       | 2023/07  |
+| QWen-14B |     32.3%     | 2023/10  |
 
 
 ## Articles
@@ -123,7 +126,8 @@ We are excited to release the following two CodeLLMs trained by MFTCoder, now av
 |--------------------------------------------------------------------------------------------|--------------------|-------------------------|------------|------------|
 | [🔥🔥🔥 CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 600k                    | 80         | 4096       | 
 | [🔥🔥🔥 CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) |    CodeLlama-34b-Python|           |           | 4096       |
-| [🔥🔥🔥 CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | Starcoder | 600k                    | 80         | 4096       | 
+| [🔥🔥🔥 CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | Starcoder | 600k                    | 256         | 4096       | 
+| [🔥🔥🔥 CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) | Qwen-14b | 1100k                    | 256         | 4096       | 
 | [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)                         | CodeFuse-13B       | 66k                     | 64         | 4096       |
 
 
