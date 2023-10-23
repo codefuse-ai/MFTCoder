@@ -1,7 +1,7 @@
 # CodeFuse-MFTCoder: Multitask Fine-Tuned Code LLMs
 
 <p align="center">
-  <img src="./assets/github-codefuse-logo-update.jpg" width="100%" />
+  <img src="./assets/github-codefuse-logo-update.jpg" width="50%" />
 </p>
 
 
