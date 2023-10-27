@@ -73,6 +73,9 @@
 TBA
 
 ## Introduction
+
+**High Accuracy and efficiency multi-task fine-tuning framework for Code LLMs.**
+
 **CodeFuse-MFTCoder** is an open-source project of CodeFuse for multitasking Code-LLMs(large language model for code tasks), which includes models, datasets, training codebases and inference guides.
 In MFTCoder, we released two codebases for finetuning Large Language Models: 
 - ```mft_peft_hf``` is based on the HuggingFace Accelerate and deepspeed framework.
