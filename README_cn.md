@@ -1,4 +1,4 @@
-# CodeFuse-MFTCoder: 多任务微调代码大模型
+# MFTCoder: 多任务大模型代码能力微调框架
 
 <p align="center">
   <img src="./assets/github-codefuse-logo-update.jpg" width="50%" />
