@@ -1,4 +1,4 @@
-# MFTCoder: Multitask Fine-Tuneing framework for Code LLMs
+# MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning
 
 <p align="center">
   <img src="./assets/github-codefuse-logo-update.jpg" width="50%" />
