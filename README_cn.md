@@ -39,6 +39,9 @@
 
 
 ## 新闻
+
+🔥🔥 [2023/11/07] [MFTCoder论文](https://arxiv.org/abs/2311.02303)在Arxiv公布，介绍了多任务微调的技术细节。
+
 🔥🔥 [2023/10/20] 开源了[CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)模型，在HumanEval pass@1(greedy decoding)上可以达到48.8%。相比较与基座模型Qwen-14b提升16%。感兴趣详见微信公众号CodeFuse文章(https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
 
 🔥🔥 [2023/09/27] 开源了[CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)模型，在HumanEval pass@1(greedy decoding)上可以达到54.9%。
@@ -134,5 +137,16 @@ sh init_env.sh
 | [⭐ Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
 | [⭐ CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k) | 基于chatgpt生成的高质量python练习题数据                                         |
 
+## 引用
+如果你觉得我们的工作对你有帮助，请引用我们的论文
+
+@article{mftcoder2023,
+      title={MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning}, 
+      author={Bingchang Liu and Chaoyu Chen and Cong Liao and Zi Gong and Huan Wang and Zhichao Lei and Ming Liang and Dajun Chen and Min Shen and Hailian Zhou and Hang Yu and Jianguo Li},
+      year={2023},
+      journal={arXiv preprint arXiv},
+      archivePrefix={arXiv},
+      eprint={2311.02303}
+}
 
 
