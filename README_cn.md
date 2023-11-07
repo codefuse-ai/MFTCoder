@@ -139,7 +139,7 @@ sh init_env.sh
 
 ## 引用
 如果你觉得我们的工作对你有帮助，请引用我们的论文
-
+```
 @article{mftcoder2023,
       title={MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning}, 
       author={Bingchang Liu and Chaoyu Chen and Cong Liao and Zi Gong and Huan Wang and Zhichao Lei and Ming Liang and Dajun Chen and Min Shen and Hailian Zhou and Hang Yu and Jianguo Li},
@@ -148,5 +148,5 @@ sh init_env.sh
       archivePrefix={arXiv},
       eprint={2311.02303}
 }
-
+```
 
