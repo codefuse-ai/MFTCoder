@@ -153,7 +153,7 @@ If you use our codes or models, or feel our project useful for your R&D works, p
       year={2023},
       journal={arXiv preprint arXiv},
       archivePrefix={arXiv},
-       eprint={2311.02303}
+      eprint={2311.02303}
 }
 ```
 
