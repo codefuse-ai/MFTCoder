@@ -129,7 +129,7 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 - evalation_steps：每隔多少步在验证集上evaluate一次。
 - early_stopping ： 是否执行early_stop
 - early_stopping_stall_num： 多少个eval point不继续收敛，则停止训练
-- lr_scheduler_type：学习率变化策略。
+- lr_scheduler_type：学习率变化策略。常用"cosine"
 - warmup_steps：warm up步数。学习率经过多少步，增长到指定的数值。
 - seed：随机种子，用于复现实验结果。
 
