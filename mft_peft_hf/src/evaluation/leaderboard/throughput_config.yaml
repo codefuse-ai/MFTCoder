@@ -1,0 +1,37 @@
+defaults:
+  - backend: pytorch # default backend
+  - benchmark: inference # default benchmark
+  - experiment # inheriting experiment schema
+  - _self_ # for hydra 1.1 compatibility
+  - override hydra/job_logging: colorlog # colorful logging
+  - override hydra/hydra_logging: colorlog # colorful logging
+
+hydra:
+  run:
+    dir: runs/${experiment_name}
+  sweep:
+    dir: sweeps/${experiment_name}
+  job:
+    chdir: true
+    env_set:
+      CUDA_VISIBLE_DEVICES: 0,1,2,3,4,5,6,7
+    
+experiment_name: code_evals
+
+model: bigcode/santacoder
+
+hub_kwargs:
+  use_auth_token: true
+  trust_remote_code: true
+
+backend:
+  torch_dtype: float16
+
+device: cuda:0
+
+benchmark:
+  memory: true
+  input_shapes:
+    batch_size: 1
+    sequence_length: 1
+  new_tokens: 1000
