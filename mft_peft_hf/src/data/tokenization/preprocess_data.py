@@ -137,6 +137,9 @@ class UniformEncoder(Encoder):
 
         CHAT_COL = 'chat_rounds'
         ROLE_COL = 'role'
+        CHAT_ROLE_HUMAN = 'human'
+        CHAT_ROLE_BOT = 'bot'
+        CHAT_ROLE_SYSTEM = 'system'
         CONTENT_COL = 'content'
 
         PROMPT_COL = 'prompt'
@@ -146,24 +149,29 @@ class UniformEncoder(Encoder):
         TEXT_COL = 'text'
 
         if self.mode == 'sft':
-            HUMAN = 'human'
-            BOT = 'bot'
+            HUMAN = 'user'
+            BOT = 'assistant'
             SYSTEM = 'system'
-            ROLE_START_MARKER = '<|role_start|>'
-            ROLE_END_MARKER = '<|role_end|>'
+            ROLE_START_MARKER = '<|im_start|>'
+            ROLE_END_MARKER = '\n'
+            EOD_MARKER = '<|im_end|>'
+            NEW_LINE_MARKER = '\n'
         elif self.mode == 'pretrain' or data_type == 'text':
             HUMAN = ''
             BOT = ''
             SYSTEM = ''
             ROLE_START_MARKER = ''
             ROLE_END_MARKER = ''
+            EOD_MARKER = self.tokenizer.eod_token
+            NEW_LINE_MARKER = ''
         else:
             raise ValueError(f"tokenize_mode does not support {self.mode}, please use sft or pretrain")
 
         human_marker_ids = self.tokenizer.encode(f"{ROLE_START_MARKER}{HUMAN}{ROLE_END_MARKER}", add_special_tokens=False)
         bot_marker_ids = self.tokenizer.encode(f"{ROLE_START_MARKER}{BOT}{ROLE_END_MARKER}", add_special_tokens=False)
         system_marker_ids = self.tokenizer.encode(f"{ROLE_START_MARKER}{SYSTEM}{ROLE_END_MARKER}", add_special_tokens=False)
-        sft_end_marker_ids = [self.tokenizer.eod_id]
+        sft_end_marker_ids = self.tokenizer.encode(f"{EOD_MARKER}", add_special_tokens=False)
+        new_line_marker_ids = self.tokenizer.encode(f"{NEW_LINE_MARKER}", add_special_tokens=False)
 
         # uniform SST,SFT,MFT
 
@@ -177,8 +185,8 @@ class UniformEncoder(Encoder):
             system = punctuation_format(system)
             prompt = punctuation_format(prompt)
             answer = punctuation_format(answer)
-            system_ids = system_marker_ids + self.tokenizer.encode(system, add_special_tokens=False) if system else []
-            prompt_ids = self.tokenizer.encode(prompt, add_special_tokens=False)
+            system_ids = system_marker_ids + self.tokenizer.encode(system, add_special_tokens=False) + sft_end_marker_ids + new_line_marker_ids if system else []
+            prompt_ids = self.tokenizer.encode(prompt, add_special_tokens=False) + sft_end_marker_ids + new_line_marker_ids
             answer_ids = self.tokenizer.encode(answer, add_special_tokens=False) + sft_end_marker_ids
             input_ids += system_ids + human_marker_ids + prompt_ids + bot_marker_ids + answer_ids
             loss_mask += [0] * len(system_ids) + [0] * len(human_marker_ids) + [0] * len(prompt_ids) + \
@@ -189,22 +197,24 @@ class UniformEncoder(Encoder):
                 role = r[ROLE_COL]
                 content = r[CONTENT_COL]
                 content = punctuation_format(content)
-                if role == HUMAN:
+                if role == CHAT_ROLE_HUMAN:
                     role_marker_ids = human_marker_ids
                     content_ids = self.tokenizer.encode(content, add_special_tokens=False)
-                elif role == BOT:
+                elif role == CHAT_ROLE_BOT:
                     # compute loss for eos token after bot's content
                     role_marker_ids = bot_marker_ids
-                    content_ids = self.tokenizer.encode(content, add_special_tokens=False) + sft_end_marker_ids
-                elif role == SYSTEM:
-                    role_marker_ids = system_marker_ids
                     content_ids = self.tokenizer.encode(content, add_special_tokens=False)
+                elif role == CHAT_ROLE_SYSTEM:
+                    role_marker_ids = system_marker_ids
+                    content_ids = self.tokenizer.encode(content, add_special_tokens=False) 
                 else:
                     raise ValueError(f"Role {role} not supported.")
 
-                input_ids += role_marker_ids + content_ids
-                masklet = [1] if role == BOT else [0]
-                loss_mask += [0] * len(role_marker_ids) + masklet * len(content_ids)
+                input_ids += role_marker_ids + content_ids + sft_end_marker_ids + new_line_marker_ids
+                masklet = [1] if role == CHAT_ROLE_BOT else [0]
+                loss_mask += [0] * len(role_marker_ids) + masklet * len(content_ids) + masklet * len(sft_end_marker_ids) + [0] * len(new_line_marker_ids)
+            input_ids = input_ids[:-len(new_line_marker_ids)]
+            loss_mask = loss_mask[:-len(new_line_marker_ids)]
         elif data_type == "text":
             text = data[TEXT_COL]
             text = punctuation_format(text)

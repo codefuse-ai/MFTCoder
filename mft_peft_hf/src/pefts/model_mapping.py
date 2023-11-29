@@ -69,8 +69,8 @@ MODEL_SPECIAL_TOKENS = {
     },
     "qwen": {
 
-        "eos_token": "<|endoftext|>",
-        "pad_token": "<|extra_1|>",
+        "eos_token": "<|im_end|>",
+        "pad_token": "<|im_end|>",
         
     },
     "chatglm2": {

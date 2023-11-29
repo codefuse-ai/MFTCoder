@@ -17,6 +17,8 @@ def build_tokenizer(args):
     if args.tokenizer_type.lower() == "AutoTokenizer".lower():
         assert args.pretrained_model_path is not None
         tokenizer = AutoTokenizer.from_pretrained(args.pretrained_model_path, trust_remote_code=True, use_fast=False)
+        tokenizer.eod_token = args.eos_token
+        tokenizer.pad_token = args.pad_token
         tokenizer.eod_id = tokenizer.convert_tokens_to_ids(args.eos_token)
         tokenizer.pad_id = tokenizer.convert_tokens_to_ids(args.pad_token)
         print_rank_0(f"build_tokenizer PAD id: {tokenizer.pad_id}, EOD id: {tokenizer.eod_id}")

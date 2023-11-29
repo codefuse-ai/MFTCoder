@@ -14,12 +14,20 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
 from peft import LoraConfig, get_peft_model
 from peft import PeftModel
 from model_mapping import MODEL_SPECIAL_TOKENS
+import argparse
 
+parser = argparse.ArgumentParser(description='merge lora adapter and base model')
+parser.add_argument('--model-path', help='path of base model')
+parser.add_argument('--lora', help='path of lora adapter')
+parser.add_argument('--save-path', help='path of merged result model')
+parser.add_argument('--model-type', help='type of base model, options include [llama, gpt_neox, qwen, chatglm2, starcoder]')
 
-model_path='path to base model'
-lora_adapter='path to lora adaptor ckpt'
-save_path='path to new merged model'
-model_type = 'llama/gpt_neox/qwen/chatglm2/starcoder'
+args = parser.parse_args()
+
+model_path = args.model_path
+lora_adapter = args.lora
+save_path = args.save_path
+model_type = args.model_type
 
 t0 = time.time()
 config = {"model_type": model_type}

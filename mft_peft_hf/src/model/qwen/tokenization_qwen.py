@@ -86,6 +86,24 @@ class QWenTokenizer(PreTrainedTokenizer):
         self.im_start_id = self.special_tokens[IMSTART]
         self.im_end_id = self.special_tokens[IMEND]
 
+    def __getstate__(self):
+        # for pickle lovers
+        state = self.__dict__.copy()
+        del state['tokenizer']
+        return state
+
+    def __setstate__(self, state):
+        # tokenizer is not python native; don't pass it; rebuild it
+        self.__dict__.update(state)
+        enc = tiktoken.Encoding(
+            "Qwen",
+            pat_str=PAT_STR,
+            mergeable_ranks=self.mergeable_ranks,
+            special_tokens=self.special_tokens,
+        )
+        self.tokenizer = enc
+
+
     def __len__(self) -> int:
         return self.tokenizer.n_vocab
 
