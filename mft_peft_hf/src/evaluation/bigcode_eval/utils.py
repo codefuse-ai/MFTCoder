@@ -59,6 +59,7 @@ class TokenizedDataset(IterableDataset):
                 # Normal code completion mode
                 infill.append(False)
                 instruction.append(False)
+                prompt_contents = prompt_contents if prompt_contents.endswith('\n') else prompt_contents + '\n'
                 prompt = self.prefix + prompt_contents + self.suffix
                 print("===="*5 + "prompt:" + "===="*5 + '\n' + prompt + '\n')
             elif isinstance(prompt_contents, dict):

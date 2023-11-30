@@ -1,6 +1,6 @@
 # Update with your model's info
-model=Qwen-7B-chat
-org=qwen
+model=Qwen-1_8B-Chat
+org=test
 
 
 tasks=(humanevalsynthesize-python humanevalsynthesize-java humanevalsynthesize-js humanevalsynthesize-cpp humanevalsynthesize-go humanevalsynthesize-rust humanevalfixtests-python humanevalfixtests-java humanevalfixtests-js humanevalfixtests-cpp humanevalfixtests-go humanevalfixtests-rust mbpp)
@@ -42,3 +42,6 @@ for task in "${tasks[@]}"; do
     echo "Task $task done, metric saved at $metrics_path/$metric_suffix"
 done
 
+GROUP_SCORE_PY_PATH=leaderboard/group_jsons_codeqwen.py
+
+python $GROUP_SCORE_PY_PATH  --metrics_path $(pwd)/$metrics_path --model Qwen-1_8B-Chat --org $org --username tester

@@ -1,4 +1,4 @@
-pip install transformers==4.32.0
+#pip install transformers==4.32.0
 
 N_NODE=1
 
@@ -9,7 +9,7 @@ tasks=(humanevalsynthesize-python humanevalsynthesize-java humanevalsynthesize-j
 
 
 model=/path/to/local/model/checkpoint
-model_name=Qwen-7b-chat
+model_name=Qwen-1_8B-chat
 generation_base_dir=/path/to/hold/generated/results
 
 
@@ -20,6 +20,7 @@ fi
 
 batch_size=1
 n_samples=1
+# For qwen base model, eos is '<|endoftext|>'; for fine-tuned qwen model, eos is '<|im_end|>'
 eos_token="<|im_end|>"
 
 
@@ -30,7 +31,7 @@ system=system
 end_tag="<|im_end|>"
 start_tag="<|im_start|>"
 
-# If you need to set system prompt, set it here, otherwise you can set it as empty string
+# If you need to set system prompt, set it here, otherwise you can set it as empty string. Decide whether to add system prompt by yourself.
 system="$start_tag"$system$'\n'"$end_tag"$'\n'
 
 for task in "${tasks[@]}"; do

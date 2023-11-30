@@ -19,6 +19,8 @@ valid_tasks = ["mbpp"] + [f'{mode}-{lang}' for lang in ["js", "java", "cpp", "py
 final_results = {"results": [], "meta": {"model": f"{args.org}/{args.model}"}}
 
 # Iterate over all .json files in the metrics_path
+count = 0
+sum_pass_at_1 = 0.0
 for json_file in glob.glob(os.path.join(args.metrics_path, '*.json')):
 
     # Extract task from file name
@@ -33,8 +35,15 @@ for json_file in glob.glob(os.path.join(args.metrics_path, '*.json')):
 
     pass_at_1 = data.get(task, {}).get("pass@1", None)
     output = {"task": task, "pass@1": pass_at_1}
+    count += 1
+    sum_pass_at_1 += pass_at_1
     final_results["results"].append(output)
     
+# stat
+if count != len(valid_tasks):
+    final_results['average'] = None
+else:
+    final_results['average'] = sum_pass_at_1/count
 
 with open(f"{args.org}_{args.model}_{args.username}.json", 'w') as f:
     json.dump(final_results, f)
