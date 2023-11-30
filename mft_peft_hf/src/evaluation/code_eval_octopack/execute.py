@@ -243,7 +243,7 @@ def unsafe_execute_rust(check_program, result, timeout, cargo_string):
 
     compilation_result = subprocess.run(["cargo", "check", "--bin", "test", "--message-format", "json"], timeout=timeout, capture_output=True)
     if compilation_result.returncode == 0:
-        exec_result = subprocess.run(["cargo", "test", "--bin", "test", "--message-format", "json"], timeout=timeout, capture_output=True)
+        exec_result = subprocess.run(["cargo", "test", "--bin", "test", "--message-format", "json"], timeout=30, capture_output=True)
         if exec_result.returncode == 0:
             result.append("passed")
         else:

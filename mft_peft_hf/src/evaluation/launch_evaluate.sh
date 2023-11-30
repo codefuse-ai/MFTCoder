@@ -49,4 +49,4 @@ done
 
 GROUP_SCORE_PY_PATH=leaderboard/group_jsons_codeqwen.py
 
-python $GROUP_SCORE_PY_PATH  --metrics_path $(pwd)/$metrics_path --model Qwen-1_8B-Chat --org $org --username tester
+python $GROUP_SCORE_PY_PATH  --metrics_path $(pwd)/$metrics_path --model Qwen-1_8B-Chat --org test --username tester
