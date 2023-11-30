@@ -10,6 +10,11 @@ tasks=(humanevalsynthesize-python humanevalsynthesize-java humanevalsynthesize-j
 generations_path=generations_$model
 metrics_path=metrics_$model
 
+if [ -d $metrics_path ]; then
+    echo "Folder exists. Deleting folder: $metrics_path"
+    rm -rf $metrics_path
+fi
+
 
 batch_size=1
 n_samples=1
