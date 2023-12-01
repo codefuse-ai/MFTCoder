@@ -1,5 +1,6 @@
-# Update with your model's info
-model=Qwen-1_8B-Chat
+
+# please replace this with your own model name which is taken during generation with launch_generate_codeqwen.sh
+model=Qwen-1_8B-11292208
 org=test
 
 
@@ -14,7 +15,7 @@ if [ -d $metrics_path ]; then
     echo "Folder exists. Deleting folder: $metrics_path"
     rm -rf $metrics_path
 fi
-
+mkdir $metrics_path
 
 batch_size=1
 n_samples=1
@@ -46,7 +47,3 @@ for task in "${tasks[@]}"; do
         --n_samples $n_samples | tee -a logs_$model.txt"
     echo "Task $task done, metric saved at $metrics_path/$metric_suffix"
 done
-
-GROUP_SCORE_PY_PATH=leaderboard/group_jsons_codeqwen.py
-
-python $GROUP_SCORE_PY_PATH  --metrics_path $(pwd)/$metrics_path --model Qwen-1_8B-Chat --org test --username tester
