@@ -6,6 +6,8 @@
 
 # SFT Fine-Tuning
 
+To fine-tune the Qwen-1.8B model, you need to start by preparing the training dataset(s) and then proceed with the fine-tuning training using the dataset(s). Subsequently, we will outline the requirements for the training data format, provide instructions on building the configuration file, and guide you on initiating the training process.
+
 ## Training Data Format
 The training data is in a uniformed JSONL format, in which each line of data has the following JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on specific needs. In "chat_rounds", the element with "system" role is optional.
 
@@ -170,7 +172,7 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 
 We build our inference framework based on [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness). We recommend that you go to [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness) to learn some necessary information. We made some modifications to adapt to Qwen AI (Code) competition, including inference format, evaluation datasets localization et.al.
 
-In Qwen AI (Code) competition, we select **HumanEvalPack** and **MBPP** as our evaluation tasks. Two subtasks of HumanEvalPack are selected, including "humanevalsynthesize" and "humanevalfixtests"  and each of them contains 6 languages. In summary, the evaluation tasks are as follows and there are 2,468 questions to be evluated in total. The list of evaluation tasks:
+In the Qwen AI (Code) competition, we have chosen **HumanEvalPack** and **MBPP** as our evaluation tasks. Within the HumanEvalPack, we have selected two subtasks: "humanevalsynthesize" and "humanevalfixtests," each comprising 6 languages. In total, there are 2,468 questions to be evaluated. The complete list of evaluation tasks is as follows:
 
 ```
 humanevalsynthesize-python
@@ -207,7 +209,7 @@ We take Qwen's ChatML format as our tokenization format:
 ...
 ```
 
-The eod token is ```<|im_end|>```. During training, only the content of "assistant" and the "<|im_end|>" token following it are token into loss computation. The details you can find in [src/data/tokenization/preprocess_data.py](src/data/tokenization/preprocess_data.py). Based on this, when you try to generate inference results of evaluated tasks, the reference format is:
+The eod token is ```<|im_end|>```. During training, only the content of the "assistant" and the token "<|im_end|>" following it are taken into consideration for loss computation. You can find further details in [src/data/tokenization/preprocess_data.py](src/data/tokenization/preprocess_data.py). Based on this information, when attempting to generate inference results for evaluated tasks, please adhere to the reference format as follows:
 
 ```
 <|im_start|>user
@@ -227,7 +229,7 @@ Also, you can add a system prompt if you need as follows:
 
 ## Inference Script
 
-We provide a shell script to infer the evaluating tasks, i.e. [src/evaluation/launch_generate_codeqwen.sh](src/evaluation/launch_generate_codeqwen.sh):
+We have provided a shell script for inferring the evaluating tasks, i.e. [src/evaluation/launch_generate_codeqwen.sh](src/evaluation/launch_generate_codeqwen.sh):
 
 ```shell
 N_NODE=1
@@ -307,11 +309,12 @@ done
 
 To run this script, you must provide the values of local model path ```model```, model name ```model_name```, generated results' base directory ```generation_base_dir```.
 
-You can modify other parameters as your needs. For example, if you want to set your own system prompt, you have to change current ```system``` variable's value; if you want to infer humanevalpack-tasks in the fine-tuned format requiring your model must be able to do completion tasks in fine-tuned format, you need to adjust ```prefix``` and ```suffix``` variables when performing humanevalpack tasks.
+You have the flexibility to modify other parameters according to your specific requirements. For instance, if you wish to customize the system prompt, you can change the value of the current ```system``` variable. Similarly, if you intend to infer humanevalpack-tasks in the fine-tuned format, which necessitates your model's ability to complete tasks in the fine-tuned format, you will need to adjust the ```prefix``` and ```suffix``` variables when executing humanevalpack tasks.
 
 Besides, current script is not task-parallel, you can change it with Slurm as your needs.
 
-After inference with this script, you will get a folder which is named with **generations_{your-model-name}**. In this folder, there're **13** json files which are named in the schema **generations_{task-name}_{your-model-name}.json**. Remeber to replace "**{your-model-name}**" with your own model name, e.g. "*generations_qwen_1_8B_codefuse*".
+Upon running the script for inference, you will obtain a folder named **generations_{your-model-name}**. Within this folder, you will find *13* JSON files named according to the schema **generations_{task-name}_{your-model-name}.json**. Please remember to replace "{your-model-name}" with your specific model name, such as "generations_qwen_1_8B_codefuse".
+
 
 ```
 generations_{your-model-name}:
@@ -335,8 +338,8 @@ generations_{your-model-name}:
 
 # Evaluation (Optional)
 
-Because the generated code cannot guarantee security, we run the generated code in a separate container. We have provided a Docker image and a shell script to run the generated code to get pass@1 evaluation scores.
-**In Qwen AI (Code) competition, we take "Greedy Decoding Mode & PASS@1" as mearsure metric.** 
+Due to security concerns, the generated code is executed within a separate container. To facilitate this process and obtain the PASS@1 evaluation scores, we have provided a Docker image and a shell script specifically for running the generated code.
+**In the Qwen AI (Code) competition, we adopt "Greedy Decoding Mode & PASS@1" as the metric for evaluation.**
 
 
 ## Docker image
@@ -405,23 +408,22 @@ for task in "${tasks[@]}"; do
 done
 ```
 
-To run this script, you must provide ```{your-model-name}``` and place the generations folder (named with **generations_{your-model-name}**) in the sample folder with this script. If not the same, you need to adjust the part ```${pwd}/generations_path/``` as your path. 
+In order to execute this script, you must provide the ```{your-model-name}``` parameter and ensure that the generations folder (named *generations_{your-model-name}*) is placed in the same directory as this script. If the paths differ, you will need to adjust the ```${pwd}/generations_path/``` section accordingly.
+*Please note that this script does not support task parallelism, but you can modify it according to your specific requirements.*
 
-This script is not task-parallel, you can change it as your needs.
-
-After evaluation, you will get a metric folder named with **metrices_{your-model-name}** and there are 13 metric json files in it. Each json file holds the evaluation score of a task.
+After the evaluation process, you will find a metric folder named **metrices_{your-model-name}**, which contains 13 JSON files. Each JSON file corresponds to an evaluation task and holds the evaluation score for that particular task.
 
 # Submission
 
-When you get the model's genererated results, i.e. the folder named with "generations_{your-model-name}", you need to compress it into a zip file and upload the zip file to TianChi platform of Aliyun [https://tianchi.aliyun.com/competition/entrance/532169](https://tianchi.aliyun.com/competition/entrance/532169).
+Once you have obtained the generated results of your model, which is the folder named "generations_{your-model-name}", you should compress it into a zip file. After compressing the folder, you can proceed to upload the zip file to TianChi platform of Aliyun [https://tianchi.aliyun.com/competition/entrance/532169](https://tianchi.aliyun.com/competition/entrance/532169).
 
 Your submission must satisfy these requirements:
 
 ```text
 1. The generation result folder must be compressed into a zip file
-2. The compressed result of the zip file must be a folder named with "generations_{your-model-name}"
-3. There're must **13** json files corresponding to 13 tasks in the folder
-4. Each json file must be named with this schema "generations_{task-name}_{your-model-name}.json". ({task-name} needs to be replaced with an evaluation task name and {your-model-name} needs to be replaced with your model name).
+2. The decompressed result of the zip file must be a folder named with "generations_{your-model-name}"
+3. Verify that the folder contains exactly 13 JSON files, each corresponding to one evaluation task.
+4. Name each JSON file using the following schema: "generations_{task-name}_{your-model-name}.json". Replace "{task-name}" with the name of the evaluation task and "{your-model-name}" with the name of your model.
 ```
 
-After submitting you generated results, pass@1 score of each task will be evaluated in TianChi platform and the average score of 13 tasks will be taken as your score of this submission. 
+Once you have submitted your generated results, the TianChi platform will evaluate the PASS@1 scores. The average score across all 13 tasks will then be calculated and considered as your overall score for the submission.
