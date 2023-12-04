@@ -53,6 +53,16 @@ In theory, this project can be used to train any publicly available model in the
 You can find the implementations in the ```mft_peft_hf/src``` directory. The entry directory for fine-tuning training is ```mft_peft_hf/src/pefts```, and the entry file for training is ```mft_peft_hf/src/pefts/mft_accelerate.py```. 
 Configurations are stored in the ```mft_peft_hf/src/pefts/configs``` directory for easy management and modification.
 
+More details you can find in this paper:
+```
+@article{liu2023mftcoder,
+  title={MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning},
+  author={Liu, Bingchang and Chen, Chaoyu and Liao, Cong and Gong, Zi and Wang, Huan and Lei, Zhichao and Liang, Ming and Chen, Dajun and Shen, Min and Zhou, Hailian and others},
+  journal={arXiv preprint arXiv:2311.02303},
+  year={2023}
+}
+```
+
 ### Configuration
 An example configuration file for fine-tuning Qwen-1.8B model is [src/pefts/configs/qwen_train_config_1_8B.json](src/pefts/configs/qwen_train_config_1_8B.json).
 
