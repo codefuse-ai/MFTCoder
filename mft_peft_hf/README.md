@@ -158,7 +158,7 @@ accelerate launch \
   mft_accelerate.py --train_config configs/qwen_train_config_1_8B.json
 ```
 
-You need to adjust some parametes as your needs, e.g. the number of nodes ```N_NODE```, gpus of each node ```N_GPU_PER_NODE```. You can also execute the following command to run:
+You need to adjust some parametes as your needs, e.g. the configuration path ```--train_config```, the number of nodes ```N_NODE```, gpus of each node ```N_GPU_PER_NODE```. You can also execute the following command to run:
 ```bash
 cd mft_peft_hf/src/pefts
 
