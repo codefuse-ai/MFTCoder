@@ -1,4 +1,4 @@
-# MFTCoder: Fine-Tuning & Inference & Evaluation 
+# MFTCoder: Fine-Tuning & Inference & Evaluation & Submission
 [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-green.svg)](https://huggingface.co/codefuse-ai)
 <a href="https://github.com/codefuse-ai/MFTCoder/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -401,7 +401,7 @@ This script is not task-parallel, you can change it as your needs.
 
 After evaluation, you will get a metric folder named with **metrices_{your-model-name}** and there are 13 metric json files in it. Each json file holds the evaluation score of a task.
 
-# Submit Results
+# Submission
 
 When you get the model's genererated results, i.e. the folder named with "generations_{your-model-name}", you need to compress it into a zip file and upload the zip file to TianChi platform of Aliyun [https://tianchi.aliyun.com/competition/entrance/532169](https://tianchi.aliyun.com/competition/entrance/532169).
 
