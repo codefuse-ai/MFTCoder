@@ -342,7 +342,7 @@ Also, you can build by yourself with our provide [Dockerfile](src/evaluation/Doc
 
 ## Running Scripts
 
-We provide a shell script to performation evaluation with our provided image in [src/evaluation//launch_evaluate.sh](src/evaluation//launch_evaluate.sh):
+We provide a shell script to perform evaluation with our provided image in [src/evaluation//launch_evaluate.sh](src/evaluation//launch_evaluate.sh):
 
 ```shell
 
