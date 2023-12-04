@@ -162,8 +162,7 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 
 We build our inference framework based on [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness). We recommend that you go to [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness) to learn some necessary information. We made some modifications to adapt to Qwen AI (Code) competition, including inference format, evaluation datasets localization et.al.
 
-In Qwen AI (Code) competition, we select **HumanEvalPack** and **MBPP** as our evaluation tasks. Two subtasks of HumanEvalPack are selected, including "humanevalsynthesize" and "humanevalfixtests"  and each of them contains 6 languages ```Python|Java|JavaScript|CPP|Go|Rust```. In summary, the evaluation tasks are as follows and there are 2,468 questions to be evluated in total.
-
+In Qwen AI (Code) competition, we select **HumanEvalPack** and **MBPP** as our evaluation tasks. Two subtasks of HumanEvalPack are selected, including "humanevalsynthesize" and "humanevalfixtests"  and each of them contains 6 languages. In summary, the evaluation tasks are as follows and there are 2,468 questions to be evluated in total. The list of evaluation tasks:
 
 ```
 humanevalsynthesize-python
@@ -298,11 +297,11 @@ for task in "${tasks[@]}"; do
 done
 ```
 
-To run this script, you must provide the values of local model path```model```, model name ```model_name```, generated results' base directory ```generation_base_dir```.
+To run this script, you must provide the values of local model path ```model```, model name ```model_name```, generated results' base directory ```generation_base_dir```.
 
-You can modify other parameters as your needs. For example, if you want to set your own system prompt, you have to change current ```system``` variable's value; if you want to infer humanevalpack-tasks in the fine-tuned format requiring your model must be able to do completion tasks in fine-tuned format, you need to adjust ```prefix``` and  ```suffix``` variables when performing humanevalpack tasks.
+You can modify other parameters as your needs. For example, if you want to set your own system prompt, you have to change current ```system``` variable's value; if you want to infer humanevalpack-tasks in the fine-tuned format requiring your model must be able to do completion tasks in fine-tuned format, you need to adjust ```prefix``` and ```suffix``` variables when performing humanevalpack tasks.
 
-Besides, current script is not task-parallel, you can change it based on your GPU resources.
+Besides, current script is not task-parallel, you can change it with Slurm as your needs.
 
 After inference with this script, you will get a folder which is named with **generations_{your-model-name}**. In this folder, there're **13** json files which are named in the schema **generations_{task-name}_{your-model-name}.json**. Remeber to replace "**{your-model-name}**" with your own model name, e.g. "*generations_qwen_1_8B_codefuse*".
 
