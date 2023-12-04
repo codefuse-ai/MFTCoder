@@ -155,8 +155,6 @@ cd mft_peft_hf/src/pefts
 accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --train_config configs/starcoder_train_config.json
 ```
 
-### 3.1 Tokenization
-
 
 # Inference Generation
 
