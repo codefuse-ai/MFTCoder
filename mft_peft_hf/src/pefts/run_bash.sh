@@ -27,4 +27,4 @@ accelerate launch \
   --main_process_ip $MASTER_ADDR \
   --main_process_port $MASTER_PORT \
   --rdzv_backend 'static' \
-  mft_accelerate.py --train_config configs/qwen_1_8b_train_config_mft_5tasks.json
+  mft_accelerate.py --train_config configs/qwen_train_config_1_8B.json

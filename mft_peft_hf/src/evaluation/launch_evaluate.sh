@@ -1,6 +1,6 @@
 
 # please replace this with your own model name which is taken during generation with launch_generate_codeqwen.sh
-model=Qwen-1_8B-11292208
+model={your-model-name}
 org=test
 
 
