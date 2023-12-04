@@ -417,9 +417,11 @@ When you get the model's genererated results, i.e. the folder named with "genera
 
 Your submission must satisfy these requirements:
 
+```text
 1. The generation result folder must be compressed into a zip file
 2. The compressed result of the zip file must be a folder named with "generations_{your-model-name}"
 3. There're must **13** json files corresponding to 13 tasks in the folder
 4. Each json file must be named with this schema "generations_{task-name}_{your-model-name}.json". ({task-name} needs to be replaced with an evaluation task name and {your-model-name} needs to be replaced with your model name).
+```
 
 After submitting you generated results, pass@1 score of each task will be evaluated in TianChi platform and the average score of 13 tasks will be taken as your score of this submission. 
