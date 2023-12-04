@@ -504,3 +504,21 @@ Your submission must satisfy these requirements:
 Once you have submitted your generated results, the TianChi platform will evaluate the PASS@1 scores. The average score across all 13 tasks will then be calculated and considered as your overall score for the submission.
 
 当你提交生成结果后，天池平台会评测得出PASS@1分值，并将13个任务的平均PASS@1值作为本次提交的得分。
+
+下面是我们未精细微调的一个版本分数，作为本次大赛的 baseline 分数:
+```
+score:0.0933
+humanevalsynthesize-python:0.2195
+humanevalfixtests-cpp:0.0183
+mbpp:0.2440
+humanevalsynthesize-cpp:0.1280
+humanevalfixtests-js:0.0122
+humanevalfixtests-go:0.0122
+humanevalfixtests-python:0.0305
+humanevalfixtests-rust:0.0000
+humanevalsynthesize-rust:0.0366
+humanevalsynthesize-js:0.1341
+humanevalsynthesize-go:0.1524
+humanevalfixtests-java:0.0000
+humanevalsynthesize-java:0.2256
+```
