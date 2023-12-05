@@ -147,7 +147,7 @@ The parameters in ```configs/*_train_config``` configuration files are explained
 
 
 
-### Run
+### Run / 启动训练
 
 To run LoRA/QLoRA fine-tuing, you can execute the [src/pefts/run_bash.sh](src/pefts/run_bash.sh) script:
 
@@ -192,7 +192,22 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 ```
 
 
-# Inference Generation
+### Merge Checkpoint / 合并
+
+Upon completing your training, it's necessary to merge the LoRA adapters with the foundational model. This can be accomplished using the script [src/pefts/merge_base_and_lora_to_hf.py](src/pefts/merge_base_and_lora_to_hf.py). Follow the example below for guidance:
+
+在完成训练后，需要将训练过程保存的Lora adapters与底座模型合并从而得到完整的模型checkpoint，这可通过[src/pefts/merge_base_and_lora_to_hf.py](src/pefts/merge_base_and_lora_to_hf.py)如下这样完成：
+
+
+```shell
+python merge_base_and_lora_to_hf.py \
+    --model-path {path-of-base-model} \
+    --lora  {path-of-lora-checkpoint} \
+    --save-path {path-to-save-merged-checkpoint} \
+    --model-type qwen
+```
+
+# Inference Generation / 推理生成
 
 We build our inference framework based on [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness). We recommend that you go to [bigcode-project/bigcode-evaluation-harness](https://github.com/bigcode-project/bigcode-evaluation-harness) to learn some necessary information. We made some modifications to adapt to Qwen AI (Code) competition, including inference format, evaluation datasets localization et.al.
 
