@@ -44,7 +44,7 @@ from accelerate import Accelerator
 from accelerate.logging import get_logger
 
 sys.path.append("..")
-from data.gpt2_multi_task_dataset import load_dataset_from_jsonl
+from data.gpt2_multi_task_dataset import load_dataset_from_jsonl, compile_helper
 from utils.common_utils import generate_task_id, TASK2ID, ID2TASK
 from train_utils import accelerate_train
 from model_mapping import MODEL_TYPES, QLORA_TARGETING_MODULES, MODEL_SPECIAL_TOKENS
@@ -226,9 +226,12 @@ def main():
     if accelerator.is_local_main_process:
         datasets.utils.logging.set_verbosity_warning()
         transformers.utils.logging.set_verbosity_info()
+        compile_helper()
+        time.sleep(10)
     else:
         datasets.utils.logging.set_verbosity_error()
         transformers.utils.logging.set_verbosity_error()
+        time.sleep(10)
     
     if args.seed is not None:
         set_seed(args.seed)
