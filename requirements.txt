@@ -12,3 +12,5 @@ ujson
 jsonlines
 tiktoken
 transformers_stream_generator
+datasets
+evaluate
