@@ -4,6 +4,25 @@
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
 </a>
 
+# Get Base Models
+
+For this competition, participants have the option of using either the Qwen-1_8B or the Qwen-1_8B-Chat models as the base for fine-tuning. You can obtain these models as follows (require git-lfs has been installed):
+
+本次比赛可选择使用Qwen-1_8B或者Qwen-1_8B-Chat模型作为微调底座，获取方式如下（要求安装git-lfs）：
+
+**Qwen-1_8B:** https://modelscope.cn/models/qwen/Qwen-1_8B/summary
+```bash
+git clone https://www.modelscope.cn/qwen/Qwen-1_8B.git
+```
+
+**Qwen-1_8B-Chat:** https://modelscope.cn/models/qwen/Qwen-1_8B-Chat/summary
+```bash
+git clone https://www.modelscope.cn/qwen/Qwen-1_8B-Chat.git
+```
+
+
+
+
 # SFT Fine-Tuning / SFT微调
 
 To fine-tune the Qwen-1.8B model, you need to start by preparing the training dataset(s) and then proceed with the fine-tuning training using the dataset(s). Subsequently, we will outline the requirements for the training data format, provide instructions on building the configuration file, and guide you on initiating the training process.
