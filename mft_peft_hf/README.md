@@ -4,7 +4,21 @@
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
 </a>
 
+# How to start
 
+You can obtain the code for subsequent fine-tuning, inference, and evaluation by executing the following command:
+
+可以通过如下命令获取之后微调、推理和评测使用的代码：
+
+```bash
+git clone https://github.com/codefuse-ai/MFTCoder.git
+
+cd MFTCoder
+
+git checkout codeqwen_competition
+
+cd MFTCoder/mft_peft_hf
+```
 
 # SFT Fine-Tuning / SFT微调
 
