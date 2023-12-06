@@ -14,3 +14,4 @@ tiktoken
 transformers_stream_generator
 datasets
 evaluate
+pybind11
