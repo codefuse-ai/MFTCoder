@@ -185,6 +185,12 @@ To run LoRA/QLoRA fine-tuing, you can execute the [src/pefts/run_bash.sh](src/pe
 
 要执行LoRA或QLoRA微调，可执行[src/pefts/run_bash.sh](src/pefts/run_bash.sh)脚本：
 
+```bash
+cd src/pefts
+
+bash run_bash.sh
+```
+
 ```shell
 N_GPU_PER_NODE=8
 N_NODE=1
