@@ -558,7 +558,7 @@ Once you have submitted your generated results, the TianChi platform will evalua
 
 当你提交生成结果后，天池平台会评测得出PASS@1分值，并将13个任务的平均PASS@1值作为本次提交的得分。
 
-下面是我们未精细微调的一个版本分数，作为本次大赛的 baseline 分数:
+下面是我们微调的一个版本分数，作为本次大赛的 baseline 分数:
 ```
 score:0.0933
 humanevalsynthesize-python:0.2195
