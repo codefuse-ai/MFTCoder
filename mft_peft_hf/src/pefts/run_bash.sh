@@ -1,6 +1,7 @@
 
-
-N_GPU_PER_NODE=8
+# Specify the number of GPU cards per node. Please set according to your specific situation!
+N_GPU_PER_NODE=1
+# Specify the number of nodes (machines) can be used. Please set according to your specific situation!
 N_NODE=1
 
 # pip install deepspeed==0.9.3 &&

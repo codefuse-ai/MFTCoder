@@ -122,7 +122,7 @@ The parameters in ```configs/*_train_config``` configuration files are explained
 
 - **load_raw_dataset**: Must be true at present. Only JSONL format is supported. *必须是True，并且只支持JSONL格式。*
 
-- **data_paths**: Input data paths in a String of list format, e.g., "[path1,path2,path3]". Each path represents a task directory and each task directory contains one or more JSONL data files. You can provide one or more task directory. *值必须是字符串格式的路径列表，例如["路径1","路径2","路径3"]。每个路径代表一个下游任务，且其中可包含一个或多个JSONL文件。路径数量可以是一个或多个。*
+- **data_paths**: Input data paths in a String of list format, e.g., "[path1,path2,path3]". Each path represents a task directory and each task directory contains one or more JSONL data files. You can provide one or more task directory. *值必须是字符串格式的路径列表，例如“[路径1,路径2,路径3]”。每个路径代表一个下游任务，且其中可包含一个或多个JSONL文件。路径数量可以是一个或多个。*
 
 - **output_dir**: Training output directory to store checkpoints, Lora adapter, etc. *用于存储训练产生的检查点的输出目录路径*
 
@@ -192,7 +192,9 @@ bash run_bash.sh
 ```
 
 ```shell
-N_GPU_PER_NODE=8
+# Specify the number of GPU cards per node. Please set according to your specific situation!
+N_GPU_PER_NODE=1
+# Specify the number of nodes (machines) can be used. Please set according to your specific situation!
 N_NODE=1
 
 accelerate launch \
@@ -218,9 +220,9 @@ accelerate launch \
   mft_accelerate.py --train_config configs/qwen_train_config_1_8B.json
 ```
 
-You need to adjust some parametes as your needs, e.g. the configuration path ```--train_config```, the number of nodes ```N_NODE```, gpus of each node ```N_GPU_PER_NODE```. You can also execute the following command to run:
+**Please make sure to set these parameters as your situation, e.g. the configuration path ```--train_config```, the number of nodes ```N_NODE```, gpus of each node ```N_GPU_PER_NODE```.** You can also execute the following command to run:
 
-需按自己的情况调整脚本中的部分参数，例如，配置文件路径（即```--train_config```参数的值）、机器节点数量```N_NODE```、每个节点GPU卡数```N_GPU_PER_NODE```等。也可执行下面的命令启动训练：
+**请确保按照自己的实际资源和配置情况设置这些参数，例如，配置文件路径（即```--train_config```参数的值）、机器节点数量```N_NODE```、每个节点GPU卡数```N_GPU_PER_NODE```等。**也可执行下面的命令启动训练：
 
 
 ```bash
