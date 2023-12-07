@@ -9,7 +9,12 @@ import time
 import shutil
 import torch
 import transformers
-sys.path.append("..")
+
+# add src root path
+current_path = os.path.abspath(__file__)
+parent_dir = os.path.dirname(os.path.dirname(current_path))
+sys.path.insert(1, parent_dir)
+
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
 from peft import LoraConfig, get_peft_model
 from peft import PeftModel

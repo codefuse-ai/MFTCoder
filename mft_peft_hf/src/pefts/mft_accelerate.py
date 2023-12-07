@@ -43,7 +43,12 @@ from peft import (
 from accelerate import Accelerator
 from accelerate.logging import get_logger
 
-sys.path.append("..")
+
+# add src root path
+current_path = os.path.abspath(__file__)
+parent_dir = os.path.dirname(os.path.dirname(current_path))
+sys.path.insert(1, parent_dir)
+
 from data.gpt2_multi_task_dataset import load_dataset_from_jsonl, compile_helper
 from utils.common_utils import generate_task_id, TASK2ID, ID2TASK
 from train_utils import accelerate_train

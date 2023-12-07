@@ -15,7 +15,7 @@ import random
 current_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_path))
 grandparent_dir = os.path.dirname(parent_dir)
-sys.path.append(grandparent_dir)
+sys.path.insert(1, grandparent_dir)
 # print(grandparent_dir)
 
 import data.tokenization.lm_dataformat as lmd
