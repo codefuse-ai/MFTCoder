@@ -435,7 +435,7 @@ generations_{your-model-name}:
   - generations_mbpp_{your-model-name}.json
 ```
 **You must not change these names, otherwise your submission will be 0 score. Besides, we require you must generate reference results in  greedy decoding mode, i.e. 
-```doSample=Fase, num_beams=1, num_return_sequences=1```**
+```doSample=False, num_beams=1, num_return_sequences=1```**
 
 **绝不要随意更改这些名字，以免成绩被判定为0分。此外，我们要求结果生成必须使用贪心解码模式，即```doSample=Fase, num_beams=1, num_return_sequences=1```**
 
