@@ -353,3 +353,16 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
         blending_valid_dataset = GPT2BlendableDataset(all_valid_datasets, valid_sample_weights, global_valid_num, local_valid_num)
     
     return blending_train_dataset, blending_valid_dataset
+
+
+def compile_helper():
+    """Compile helper function at runtime. Make sure this
+    is invoked on a single process."""
+    import os
+    import subprocess
+    path = os.path.abspath(os.path.dirname(__file__))
+    ret = subprocess.run(["make", "-C", path])
+    if ret.returncode != 0:
+        print("Making C++ dataset helpers module failed, exiting.")
+        import sys
+        sys.exit(1)
