@@ -81,9 +81,6 @@ The training data is in a uniformed JSONL format, in which each line of data has
 }
 ```
 
-An example is [CodeFuse-CodeExercise-Python-27k-dataset](https://modelscope.cn/datasets/codefuse-ai/CodeExercise-Python-27k/summary).
-
-一个可参考的示例数据集是[CodeFuse-CodeExercise-Python-27k-dataset](https://modelscope.cn/datasets/codefuse-ai/CodeExercise-Python-27k/summary).
 
 ## Model Training / 模型训练
 
