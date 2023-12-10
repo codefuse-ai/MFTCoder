@@ -65,17 +65,17 @@ The training data is in a uniformed JSONL format, in which each line of data has
         {
             "role": "bot",
             "content": "Below is the function of quick sort: ...", 
-            "chat_round_id": 1
+            "chat_round_id": 2
         },
         {
             "role": "human",
             "content": "Explain the code", 
-            "chat_round_id": 2
+            "chat_round_id": 3
         },
         {
             "role": "bot",
             "content": "OK, this code ...", 
-            "chat_round_id": 2
+            "chat_round_id": 4
         }
     ]
 }
