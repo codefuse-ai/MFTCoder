@@ -138,7 +138,7 @@ sh init_env.sh
 | 数据集                                                           | 介绍                                                                 |
 |---------------------------------------------------------------|--------------------------------------------------------------------|
 | [⭐ Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)    | 基于开源open-evol-instruction-80k过滤低质量，重复和human eval相似的数据后得到的高质量代码类微调数据 |
-| [⭐ CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k) | 基于chatgpt生成的高质量python练习题数据                                         |
+| [⭐ CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k) | 高质量python练习题数据                                         |
 
 ## 引用
 如果你觉得我们的工作对你有帮助，请引用我们的论文
