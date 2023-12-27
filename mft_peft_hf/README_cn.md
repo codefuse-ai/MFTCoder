@@ -93,6 +93,7 @@
 
 ### 3.2 LoRA/QLoRA微调
 关于LoRA的详细介绍可参考论文：[LORA: LOW-RANK ADAPTATION OF LARGE LANGUAGE MODELS](https://arxiv.org/pdf/2106.09685.pdf)
+
 关于QLoRA的详细介绍可参考论文：[QLORA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/pdf/2305.14314.pdf)
 
 QLoRA通过4-bit的nf4量化，且加入更多adapter，在大幅减少显存消耗的同时，尽可能逼近全量参数微调的效果。
