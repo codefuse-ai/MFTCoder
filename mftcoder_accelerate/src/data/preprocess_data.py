@@ -203,8 +203,8 @@ class UniformEncoder(Encoder):
                 assistant_marker = self.args.role_markers["assistant"]
             else:
                 system_marker = '<s>system\n'
-                user_marker = '<s>user\n'
-                assistant_marker = '<s>assistant\n'
+                user_marker = '<s>human\n'
+                assistant_marker = '<s>bot\n'
         elif self.mode == 'pretrain':
             system_marker = ''
             user_marker = ''

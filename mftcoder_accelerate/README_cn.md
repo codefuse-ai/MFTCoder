@@ -1,4 +1,4 @@
-# MFTCoder训练: Huggingface accelerate + DeepSpeed框架篇
+# MFTCoder: Accelerate + DeepSpeed框架篇
 [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-green.svg)](https://huggingface.co/codefuse-ai)
 <a href="https://github.com/codefuse-ai/MFTCoder/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -56,16 +56,23 @@
 推理数据格式为模型在训练数据格式下拼接的字符串形式，它也是推理时输入prompt拼接的方式：
 ```python
 """
-<|role_start|>system<|role_end|>这是System指令
-<|role_start|>human<|role_end|>这是第1轮用户输入的问题
-<|role_start|>bot<|role_end|>这是第1轮模型生成的内容</s>
-<|role_start|>human<|role_end|>这是第2轮用户输入的问题
-<|role_start|>bot<|role_end|>这是第2轮模型生成的内容</s>
+<s>system
+这是System指令
+<s>human
+这是第1轮用户输入的问题
+<s>bot
+这是第1轮模型生成的内容{EOS_TOKEN}
+<s>human
+这是第2轮用户输入的问题
+<s>bot
+这是第2轮模型生成的内容{EOS_TOKEN}
 ...
 ...
 ...
-<|role_start|>human<|role_end|>这是第n轮用户输入的问题
-<|role_start|>bot<|role_end|>{模型现在要生成的内容}</s>
+<s>human
+这是第n轮用户输入的问题
+<s>bot
+{模型现在要生成的内容}{EOS_TOKEN}
 """
 ```
 
@@ -80,15 +87,25 @@
 
 🤗 [多语言能手Qwen-7b](https://huggingface.co/Qwen/Qwen-7B) ：适用于多语言任务，也适用中文任务。进行指令微调时。
 
-我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化，详见src目录下的实现。微调训练的入口目录是```src/pefts```, 训练入口文件是```src/pefts/mft_accelerate.py```, 参数配置存储在```src/pefts/configs```目录下，方便统一管理和更改。
+我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化，详见src目录下的实现。
+微调训练的根目录是```mftcoder_accelerate/src/```, 
+
+训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+
+参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
+
+**_所以，在你开启训练之前，请进入src目录_**
+```
+cd mftcoder_accelerate/src
+```
 
 ### 3.1 数据tokenization
-训练时，我们将多轮对话拼接成如下格式（也是上文中的推理string格式），然后进行tokenize。其中<|role_start|>human<|role_end|>表示human输入提示符，<|role_start|>bot<|role_end|>表示bot输出提示符，`````</s>````` 表示eos_token。
+训练时，我们将多轮对话拼接成如下格式（也是上文中的推理string格式），然后进行tokenize。其中```<s>human\n```表示human输入提示符，```<s>bot\n```表示bot输出提示符，```{EOS_TOKEN}``` 表示eos_token。
 其中eos_token可以根据不同模型修改替换。
 ```
-"<|role_start|>human<|role_end|>input1</s>target1</s>input2</s>target2</s>...
+"<s>human\n{input1}<s>bot\n{target1}{EOS_TOKEN}<s>human\n{input2}<s>bot\n{target2}{EOS_TOKEN}\n"
 ```
-在计算loss时，我们通过loss mask的方式，input部分的loss不参与参数更新，只有“target</s>”部分的loss参与参数更新。
+在计算loss时，我们通过loss mask的方式，input部分的loss不参与参数更新，只有“target{EOS_TOKEN}”部分的loss参与参数更新。
 这种方式充分利用了模型并行计算的优势，训练更加高效，同时也充分利用了decoder-only模型从左到右attention的特性，一次性将多轮对话中的每个target部分都参与了训练，训练更充分高效。
 
 ### 3.2 LoRA/QLoRA微调
@@ -101,7 +118,7 @@ QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调�
 
 执行如下命令即可进行Lora/QLora微调：
 ```bash
-accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --train_config configs/xxx_train_config.json
+accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json
 ```
 
 ```configs/*_train_config```中的主要参数说明如下，以下参数可以根据需求进行修改，其他参数建议不做修改：
@@ -110,14 +127,16 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 - output_dir：训练输出目录，存储checkpoint、lora_adaptor等
 - tb_dir: 存储tensorboard等
 - model_type: "llama|starcoder|chatglm2|qwen|gpt_nex"
+- attn_implementation: "flash_attention_2" 或者 "eager"
 - peft_type: lora或者qlora
 - lora_rank: lora rank
 - lora_alpha: lora alpha
 - lora_dropout: lora dropout
+- target_modules: List[str], lora目标模块，如果null，会使用默认，参考model_mapping.py
 - quantization: 是否量化，"4bit", "8bit" 或者null， qlora推荐4bit量化
 - pretrained_model_path：预训练模型的本地目录，或者在huggingface上的模型名称。
-- **weighted_loss_mode**: 多任务loss加权模式， "case3"是当前推荐。
-- **padding_mode**: 数据的样本组织方式， "padding"是将每个原始样本填充到seq_length, "pack"是将尽量多的样本打包到每个seq_length的序列中。
+- weighted_loss_mode: 多任务loss加权模式， "case3"是当前推荐。
+- padding_mode: 数据的样本组织方式， "padding"是将每个原始样本填充到seq_length, "pack"是将尽量多的样本打包到每个seq_length的序列中。
 - num_train_epochs：训练的轮次。如果数据量足够大，一般建议只训1-2个epoch。
 - per_device_train_batch_size：每张显卡train的batch size。
 - per_device_eval_batch_size：每张显卡eval的batch size。
@@ -133,11 +152,20 @@ accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --tr
 - lr_scheduler_type：学习率变化策略。常用"cosine"
 - warmup_steps：warm up步数。学习率经过多少步，增长到指定的数值。
 - seed：随机种子，用于复现实验结果。
+- saving_limit：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
 
 ## 4. 模型使用
 
 ### 4.1 权重合并
-如果使用LoRA或者QLoRA进行训练，本项目仅保存adapter的权重和配置文件，需要将adapter权重与base model进行合并。脚本见```src/pefts/merge_base_and_lora_to_hf.py```
+如果使用LoRA或者QLoRA进行训练，本项目仅保存adapter的权重和配置文件，需要将adapter权重与base model进行合并。
+可以使用如下merge_base_and_lora_to_hf.py脚本。
+```
+python pefts/merge_base_and_lora_to_hf.py \
+    --base_model_or_path model_path \
+    --adaptor_path lora_adapter_path \
+    --model_type model_type \
+    --merged_output_path output_path
+```
 
 ### 4.2 模型推理
 我们提供了单轮对话和多轮对话的如下脚本，该脚本可同时兼容大部分huggingface格式的模型。
@@ -146,14 +174,14 @@ from transformers import (
     AutoTokenizer, 
     AutoModelForCausalLM,
 )
-tokenizer = AutoTokenizer.from_pretrained(mode_name_or_path, trust_remote_code=True, use_fast=False, legacy=False)
-tokenizer.padding_side = "left"
-tokenizer.pad_token_id = tokenizer.convert_tokens_to_ids("<unk>")
-tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("</s>")
-model = AutoModelForCausalLM.from_pretrained(mode_name_or_path, trust_remote_code=True)
+model_name_or_path = "codefuse-ai/CodeFuse-Deepseek-33B"
+tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True, padding_side="left")
+tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<｜end▁of▁sentence｜>")
+tokenizer.pad_token_id = tokenizer.eos_token_id
+model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
 
-HUMAN_ROLE_START_TAG = "<|role_start|>human<|role_end|>"
-BOT_ROLE_START_TAG = "<|role_start|>bot<|role_end|>"
+HUMAN_ROLE_START_TAG = "<s>human\n"
+BOT_ROLE_START_TAG = "<s>bot\n"
 texts = ["write a python function of quick sort."]
 texts = [f"{HUMAN_ROLE_START_TAG}{text}{BOT_ROLE_START_TAG}" for text in texts]
 
@@ -187,8 +215,17 @@ print(gen_text)
 #### 问题3：如何指定使用某些卡训练？
 通过如下方式，即可指定使用0和1号卡进行训练:
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --train_config configs/xxx_train_config.json
+CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_config.yaml mft_accelerate.py --train_config configs/xxx_train_config.json
 ```
+
+#### 问题4：如果无法安装flash attention 2, 该如何训练
+参数"attn_implementation" 设置成 "eager" 可以用naive attention
+
+如果你可以自行安装环境并使用torch>=2.1.1，可以尝试设置参数"attn_implementation"为 "sdpa"。这样会尝试使用transformers兼容的torch.nn.functional.scaled_dot_product_attention。支持的模型不全面。
+
+#### 问题5：当前支持的模型中，有什么区别
+国产大模型比如chatglm2， chatglm3， baichuan2， qwen， aquila2等，使用的是和模型共同发布的modeling_xxx.py. 
+其它被transformers官方支持的大模型，由于已经升级支持flash attention等，所以全面切换到官方的modeling支持训练，之前的自定义modeling会被deprecated
 
 
 

@@ -1,4 +1,4 @@
-# MFTCoder Training: Huggingface accelerate + DeepSpeed Framework
+# MFTCoder-accelerate: Training Framework with accelerate and deepspeed
 [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-green.svg)](https://huggingface.co/codefuse-ai)
 <a href="https://github.com/codefuse-ai/MFTCoder/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -64,24 +64,24 @@ Here is an example format of the concatenated string:
 """
 <s>system
 System instruction
-<s>user
+<s>human
 User 1st round input
-<s>assistant
+<s>bot
 Assistant 1st round output{EOS_TOKEN}
-<s>user
+<s>human
 User 2nd round input
-<s>assistant
+<s>bot
 Assistant 2nd round output{EOS_TOKEN}
 ...
 ...
 ...
-<s>user
+<s>human
 User nth round input
-<s>assistant
+<s>bot
 {Assistant output to be genreated}{EOS_TOKEN}
 """
 ```
-When applying inference, you always make your input string end with ```<s>assistant\n``` to request the model generating answers.
+When applying inference, you always make your input string end with ```<s>bot\n``` to request the model generating answers.
 
 
 
@@ -107,14 +107,14 @@ cd mftcoder_accelerate/src
 ```
 
 ### 3.1 Tokenization
-During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, ```<s>user\n``` starts the user's input (i.e., prompt),```<s>assistant\n``` starts the assistant's output (i.e., response)
+During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, ```<s>human\n``` starts the user's input (i.e., prompt),```<s>bot\n``` starts the assistant's output (i.e., response)
 
 ```{EOS_TOKEN}``` represents the proper eos_token.
 We have different eos_tokens in ```src/pefts/model_mapping.py``` which fits different base models.
 
 Here is a visionable example of the training data after formatting:
 ```
-f"<s>user\n{input1}<s>assistant\n{target1}{EOS_TOKEN}\n<s>user\n{input2}<s>assistant\ntarget2{EOS_TOKEN}\n"
+f"<s>human\n{input1}<s>bot\n{target1}{EOS_TOKEN}\n<s>human\n{input2}<s>bot\ntarget2{EOS_TOKEN}\n"
 ```
 During the calculation of loss, we use a ```loss mask``` to ensure that the loss from the input part does not contribute to parameter updates. Only the loss from the ```target{EOS_TOKEN}``` part is used for updating parameters.
 This approach takes full advantage of the benefits of model parallelism, making training more efficient. It also leverages the characteristic of decoder-only models with left-to-right attention. 
@@ -148,6 +148,8 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 - **tb_dir**: TensorBoard directory to store logs, metrics, etc.
 
 - **model_type**: Type of the model to train, e.g., "mixtral | llama | starcoder | chatglm2 | qwen | gpt_neox".
+
+- **attn_implementation**: "flash_attention_2" or "eager" or "sdpa", worked when model is supported by transformers officially
 
 - **peft_type**: either "lora" or "qlora".
 
@@ -226,8 +228,8 @@ tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<｜end▁of▁sentenc
 tokenizer.pad_token_id = tokenizer.eos_token_id
 model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
 
-HUMAN_ROLE_START_TAG = "<s>user\n"
-BOT_ROLE_START_TAG = "<s>assistant\n"
+HUMAN_ROLE_START_TAG = "<s>human\n"
+BOT_ROLE_START_TAG = "<s>bot\n"
 texts = ["write a python function of quick sort."]
 texts = [f"{HUMAN_ROLE_START_TAG}{text}{BOT_ROLE_START_TAG}" for text in texts]
 
