@@ -364,3 +364,5 @@ def compile_helper():
         print("Making C++ dataset helpers module failed, exiting.")
         import sys
         sys.exit(1)
+    else:
+        print("Making C++ dataset helpers module successfully.")
