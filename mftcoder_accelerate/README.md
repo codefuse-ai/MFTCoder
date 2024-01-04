@@ -135,6 +135,15 @@ cd mftcoder_accelerate/src
 
 accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/lora_train_config.json
 ```
+OR
+
+You can launch the training by:
+```bash
+cd mftcoder_accelerate/src
+
+sh ds_single_launch.sh
+```
+
 All arguments allowed in ***_train_config.josn are defined in ```arguments.py```.
 
 Frequently used arguments are provided in ```configs/***_train_config``` and explained as follows. You can modify these parameters according to your needs:

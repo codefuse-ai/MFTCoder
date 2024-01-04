@@ -116,12 +116,23 @@ cd mftcoder_accelerate/src
 QLoRA通过4-bit的nf4量化，且加入更多adapter，在大幅减少显存消耗的同时，尽可能逼近全量参数微调的效果。
 QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调，并且性能逼近全量参数微调。
 
-执行如下命令即可进行Lora/QLora微调：
+执行如下命令即可进行Lora/QLora/全量 微调：
+
+deepspeed配置在accelerate_ds_config.yaml中。
 ```bash
 accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json
 ```
+或者
 
-```configs/*_train_config```中的主要参数说明如下，以下参数可以根据需求进行修改，其他参数建议不做修改：
+修改并执行如下sh脚本：
+
+deepspeed配置在脚本中通过命令行输入。
+```bash
+sh ds_single_launch.sh
+```
+
+_**训练需要的参数配置在```configs/*_train_config```中，主要参数说明如下：**_
+
 - load_raw_dataset : 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
 - data_paths: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据
 - output_dir：训练输出目录，存储checkpoint、lora_adaptor等
