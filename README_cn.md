@@ -113,9 +113,9 @@ sh init_env.sh
 如果希望使用flash attention, 安装请参考 https://github.com/Dao-AILab/flash-attention
 
 ## 训练
-🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](./mft_peft_hf/README.md)
+🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
 
-🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](./mft_atorch/README.md)
+🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## 模型

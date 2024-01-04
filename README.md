@@ -117,9 +117,9 @@ If you require flash attention, please refer to the following link for installat
 
 
 ## Training
-🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](./mft_peft_hf/README.md)
+🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
 
-🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](./mft_atorch/README.md)
+🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## Models
