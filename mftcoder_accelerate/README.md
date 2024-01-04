@@ -220,11 +220,11 @@ from transformers import (
     AutoTokenizer, 
     AutoModelForCausalLM,
 )
-tokenizer = AutoTokenizer.from_pretrained(mode_name_or_path, trust_remote_code=True)
-tokenizer.padding_side = "left"
-tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("{EOS_TOKEN}>")
+model_name_or_path = "codefuse-ai/CodeFuse-Deepseek-33B"
+tokenizer = AutoTokenizer.from_pretrained(model_name_or_path, trust_remote_code=True, padding_side="left")
+tokenizer.eos_token_id = tokenizer.convert_tokens_to_ids("<｜end▁of▁sentence｜>")
 tokenizer.pad_token_id = tokenizer.eos_token_id
-model = AutoModelForCausalLM.from_pretrained(mode_name_or_path, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True)
 
 HUMAN_ROLE_START_TAG = "<s>user\n"
 BOT_ROLE_START_TAG = "<s>assistant\n"
