@@ -1,4 +1,4 @@
-# MFTCoder: Accelerate + DeepSpeed框架篇
+# MFTCoder: Accelerate + DeepSpeed/FSDP 框架篇
 [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-green.svg)](https://huggingface.co/codefuse-ai)
 <a href="https://github.com/codefuse-ai/MFTCoder/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -135,11 +135,11 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 
 - load_raw_dataset : 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
 - data_paths: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据
-- output_dir：训练输出目录，存储checkpoint、lora_adaptor等
+- output_dir：训练输出目录，存储checkpoint(全量训练时)、lora_adaptor（Lora或者Qlora时）等
 - tb_dir: 存储tensorboard等
-- model_type: "llama|starcoder|chatglm2|qwen|gpt_nex"
+- model_type: "mixtral|mistral|deepseek|llama|starcoder|chatglm2|qwen|gpt_neox"
 - attn_implementation: "flash_attention_2" 或者 "eager"
-- peft_type: lora或者qlora
+- peft_type: lora或者qlora或者null(全量微调)
 - lora_rank: lora rank
 - lora_alpha: lora alpha
 - lora_dropout: lora dropout
@@ -234,7 +234,13 @@ CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_con
 
 如果你可以自行安装环境并使用torch>=2.1.1，可以尝试设置参数"attn_implementation"为 "sdpa"。这样会尝试使用transformers兼容的torch.nn.functional.scaled_dot_product_attention。支持的模型不全面。
 
-#### 问题5：当前支持的模型中，有什么区别
+#### 问题5：在FDSP模式下，使用LoRA + Flash Attention，需要注意什么？
+FSDP模式下，由于dtype统一的问题，FA需要将queue, key, value同时加入target_modules，适配这种情况不影响最终结果。
+
+FSDP模式下，不支持QLoRA, 因为目前对int类型的支持不够完全。
+
+
+#### 问题6：当前支持的模型中，有什么区别
 国产大模型比如chatglm2， chatglm3， baichuan2， qwen， aquila2等，使用的是和模型共同发布的modeling_xxx.py. 
 其它被transformers官方支持的大模型，由于已经升级支持flash attention等，所以全面切换到官方的modeling支持训练，之前的自定义modeling会被deprecated
 

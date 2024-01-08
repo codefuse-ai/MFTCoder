@@ -1,4 +1,4 @@
-# MFTCoder-accelerate: Training Framework with accelerate and deepspeed
+# MFTCoder-accelerate: Training Framework with Accelerate and DeepSpeed/FSDP
 [![Generic badge](https://img.shields.io/badge/🤗-Huggingface%20Repo-green.svg)](https://huggingface.co/codefuse-ai)
 <a href="https://github.com/codefuse-ai/MFTCoder/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/transformers.svg?color=blue">
@@ -160,7 +160,7 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 
 - **attn_implementation**: "flash_attention_2" or "eager" or "sdpa", worked when model is supported by transformers officially
 
-- **peft_type**: either "lora" or "qlora".
+- **peft_type**: null or  "lora" or "qlora". null for full-params training
 
 - **lora_rank**: Rank value for Lora.
 
@@ -170,11 +170,11 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 
 - **target_modules**: List of target modules in lora, we have default values if None
 
-- **quantization**: Whether to use quantization."4bit" or "8bit", or null. For QLoRA, it is recommended to use 4-bit quantization.
+- **quantization**: "4bit" for QLoRA/ null for LoRA and Full-params training.
 
 - **pretrained_model_path**: Local/Shared disk path or model name on HuggingFace for the pre-trained model.
 
-- **weighted_loss_mode**: Loss weighting method for multitask training. "case3" is recommended at present.
+- **weighted_loss_mode**: Loss weighting method for multitask training. "case3" is recommended at present, "self-paced" is supported but need tuning of hyper-parameters.
 
 - **padding_mode**: The way tokenized data is set. "padding" means padding for each sample to seq_length, "pack" means putting samples into seq_length as many as possible.
 

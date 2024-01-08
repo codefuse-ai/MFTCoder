@@ -146,23 +146,22 @@ class GPT2BlendableDataset(torch.utils.data.Dataset):
 
 
 def shuffle_arrays(arrays, set_seed=-1):
-        """Shuffles arrays in-place, in the same order, along axis=0
+    """Shuffles arrays in-place, in the same order, along axis=0
 
-        Parameters:
-        -----------
-        arrays : List of NumPy arrays.
-        set_seed : Seed value if int >= 0, else seed is random.
-        """
-        assert all(len(arr) == len(arrays[0]) for arr in arrays)
-        seed = np.random.randint(0, 2**(32 - 1) - 1) if set_seed < 0 else set_seed
+    Parameters:
+    -----------
+    arrays : List of NumPy arrays.
+    set_seed : Seed value if int >= 0, else seed is random.
+    """
+    assert all(len(arr) == len(arrays[0]) for arr in arrays)
+    seed = np.random.randint(0, 2 ** (32 - 1) - 1) if set_seed < 0 else set_seed
 
-        for arr in arrays:
-            rstate = np.random.RandomState(seed)
-            rstate.shuffle(arr)
+    for arr in arrays:
+        rstate = np.random.RandomState(seed)
+        rstate.shuffle(arr)
 
 
 def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0, local_rank=0):
-
     # tokenization编码器
     encoder = UniformEncoder(args, args.tokenize_mode)
     encoder.initializer()
@@ -213,13 +212,13 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
                     if shard_data and i % world_size != global_rank:
                         continue
                     data = json.loads(line.rstrip('\n\r'))
-                    features, length = encoder.encode(data, verbose=(i<1))
+                    features, length = encoder.encode(data, verbose=(i < 1))
                     # features, length = encoder.encode(data)
                     # may have more samples
                     for idx in range(len(features['input_ids'])):
                         cur_dataset_input_ids.append(features['input_ids'][idx])
                         cur_dataset_loss_mask.append(features['loss_mask'][idx])
-                        
+
                 fin.close()
             else:
                 i = 0
@@ -236,7 +235,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
                         cur_dataset_input_ids.append(features['input_ids'][idx])
                         cur_dataset_loss_mask.append(features['loss_mask'][idx])
                 fin.close()
-        
+
         cur_dataset_input_ids = np.array(cur_dataset_input_ids, dtype=np.float32)
         cur_dataset_loss_mask = np.array(cur_dataset_loss_mask, dtype=np.float32)
         cur_dataset_num_tokens = np.sum(cur_dataset_loss_mask, dtype=np.int32)
@@ -244,23 +243,25 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
         num_tokens.append(cur_dataset_num_tokens)
         total_sample_cnt.append(cur_dataset_sample_num)
         effective_token_rate.append(cur_dataset_num_tokens / (cur_dataset_sample_num * args.seq_length))
-        
+
         # shuffle before split
         shuffle_arrays([cur_dataset_input_ids, cur_dataset_loss_mask], args.seed)
         train_ratio = splits[0] / 100.0
         train_num = int(math.ceil(train_ratio * cur_dataset_sample_num))
         # split train/valid
-        cur_train_input_ids, cur_valid_input_ids = cur_dataset_input_ids[: train_num], cur_dataset_input_ids[train_num: ]
-        cur_train_loss_mask, cur_valid_loss_mask = cur_dataset_loss_mask[: train_num], cur_dataset_loss_mask[train_num: ]
+        cur_train_input_ids, cur_valid_input_ids = cur_dataset_input_ids[: train_num], cur_dataset_input_ids[train_num:]
+        cur_train_loss_mask, cur_valid_loss_mask = cur_dataset_loss_mask[: train_num], cur_dataset_loss_mask[train_num:]
         local_train_num += train_num
         local_valid_num += (cur_dataset_sample_num - train_num)
 
-        cur_train_dataset = {'input_ids': cur_train_input_ids,
-                             'loss_mask': cur_train_loss_mask
-                        }
-        cur_valid_dataset = {'input_ids': cur_valid_input_ids,
-                             'loss_mask': cur_valid_loss_mask
-                        }
+        cur_train_dataset = {
+            'input_ids': cur_train_input_ids,
+            'loss_mask': cur_train_loss_mask
+        }
+        cur_valid_dataset = {
+            'input_ids': cur_valid_input_ids,
+            'loss_mask': cur_valid_loss_mask
+        }
         print(f"[Global Rank {global_rank}]shape of cur train dataset: {cur_train_dataset['input_ids'].shape}")
         print(f"[Global Rank {global_rank}]shape of cur valid dataset: {cur_valid_dataset['input_ids'].shape}")
 
@@ -339,7 +340,7 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
             all_train_datasets[i].update_ds_weight(train_loss_weights[i] / factor)
             print(f'loss weight of train dataset {i} after update in rank {global_rank}: {all_train_datasets[i].ds_weight}')
         blending_train_dataset = GPT2BlendableDataset(all_train_datasets, train_sample_weights, global_train_num, local_train_num)
-    
+
     for i in range(len(all_train_datasets)):
         print(f'loss weight of valid dataset {i} before update in rank {global_rank}: {all_train_datasets[i].ds_weight}')
     blending_valid_dataset = None

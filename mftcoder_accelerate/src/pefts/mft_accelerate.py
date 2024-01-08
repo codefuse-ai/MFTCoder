@@ -1,6 +1,6 @@
 """
 # @author qumu
-# @date 2023/10/11
+# @date 2023/12/11
 # @module mft_accelerate.py
 
 Accelerate + DeepSpeed + Data Parallelism
@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from datasets import Dataset
 import datasets
 from torch.utils.data import DataLoader
+from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
 from tqdm.auto import tqdm
 from transformers import (
     AutoModelForCausalLM,
@@ -39,13 +40,13 @@ from peft import (
     LoraConfig,
     TaskType,
     get_peft_model,
-    prepare_model_for_int8_training,
+    prepare_model_for_kbit_training,
     PeftModel,
 )
-from accelerate import Accelerator
+from accelerate import Accelerator, DistributedType, FullyShardedDataParallelPlugin
 from accelerate.logging import get_logger
 
-# insert src as import path  
+# insert src as import path
 current_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_path))
 sys.path.insert(0, parent_dir)
@@ -137,49 +138,10 @@ class DataCollatorForMFTDataset(object):
         return result_batch
 
 
-def prepare_model_for_kbit_training(model, use_gradient_checkpointing=True):
-    """
-    This method wraps the entire protocol for preparing a model before running a training. This includes:
-        1- Cast the layernorm in fp32 2- making output embedding layer require grads 3- Add the upcasting of the lm
-        head to fp32
-
-    Args:
-        model, (`transformers.PreTrainedModel`):
-            The loaded model from `transformers`
-    """
-    loaded_in_kbit = getattr(model, "is_loaded_in_8bit", False) or getattr(model, "is_loaded_in_4bit", False)
-    is_gptq_quantized = getattr(model, "quantization_method", None) == "gptq"
-    for name, param in model.named_parameters():
-        # freeze base model's layers
-        param.requires_grad = False
-
-    if not is_gptq_quantized:
-        # cast all non INT8 parameters to fp32
-        for param in model.parameters():
-            if (param.dtype == torch.float16) or (param.dtype == torch.bfloat16):
-                param.data = param.data.to(torch.float32)
-
-    if (loaded_in_kbit or is_gptq_quantized) and use_gradient_checkpointing:
-        # For backward compatibility
-        if hasattr(model, "enable_input_require_grads"):
-            model.enable_input_require_grads()
-        else:
-
-            def make_inputs_require_grad(module, input, output):
-                output.requires_grad_(True)
-
-            model.get_input_embeddings().register_forward_hook(make_inputs_require_grad)
-
-        # enable gradient checkpointing for memory efficiency
-        model.gradient_checkpointing_enable()
-
-    return model
-
-
 def pprint_args(args, accelerator):
     # 计算所有键的最大字符串长度
     max_key_length = max(len(str(key)) for key in vars(args).keys())
-    
+
     message = ""
     message += "====" * 60 + "\n"
     message += '\n'.join([f'{k:<{max_key_length}} : {v}' for k, v in vars(args).items()]) + "\n"
@@ -198,12 +160,13 @@ def prepare_args():
     parser.add_argument("--pretrained_model_path", type=str, default=None)
     parser.add_argument("--micro_batch_size", type=int, default=None)
     parser.add_argument("--model_type", type=str, default=None)
+    parser.add_argument("--distributed_type", type=str, default="deepspeed")
 
     parsed = parser.parse_args()
     # get json configs
     with open(parsed.train_config, 'r') as f:
         train_config = json.load(f)
-    
+
     # parse args from cofig.json
     # args = argparse.Namespace(**train_config)
     args = TrainArgs(**train_config)
@@ -223,19 +186,21 @@ def prepare_args():
         args.per_device_eval_batch_size = parsed.micro_batch_size
     if parsed.model_type:
         args.model_type = parsed.model_type
-    
+
+    args.distributed_type = parsed.distributed_type
+
     # refactor args
     args.eos_token = MODEL_SPECIAL_TOKENS[args.model_type]['eos_token']
     args.pad_token = MODEL_SPECIAL_TOKENS[args.model_type]['pad_token']
-    
+
     if args.peft_type == 'qlora' and args.quantization != '4bit' and args.quantization != '8bit':
         print(f"[WARNING]peft_type is qlora but quantization is not 4bit or 8bit, setting it to 4bit")
         args.quantization = '4bit'
-    
+
     args.vocab_file = args.pretrained_model_path
 
     args.data_weights = "[" + ",".join(["1."] * len(args.data_paths[1:-1].split(','))) + "]"
-    
+
     # generate TASK2ID, ID2TASK
     generate_task_id(args.data_paths)
 
@@ -243,7 +208,8 @@ def prepare_args():
         args.task_weights = [1.0] * len(ID2TASK)
     elif args.task_weights is not None:
         args.task_weights = [float(wt) for wt in args.task_weights[1:-1].split(",")]
-        assert len(args.task_weights) == len(ID2TASK), f"length of task_weights, is not equal to the length of data_paths"
+        assert len(args.task_weights) == len(
+            ID2TASK), f"length of task_weights, is not equal to the length of data_paths"
     else:
         args.task_weights = [1.0] * len(ID2TASK)
 
@@ -257,23 +223,33 @@ def main():
 
     # get input args, set TASK2ID, ID2TASK, refactor args
     args = prepare_args()
-    
+
     # define accelerator
-    accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps)
+    if args.distributed_type and args.distributed_type.lower() == "fsdp":
+        fsdp_plugin = FullyShardedDataParallelPlugin(
+            # state_dict_config=FullStateDictConfig(offload_to_cpu=True, rank0_only=True),
+            # optim_state_dict_config=FullOptimStateDictConfig(offload_to_cpu=True, rank0_only=True),
+            limit_all_gathers=True,
+            sync_module_states=True,
+            cpu_offload=False
+        )
+        accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps, fsdp_plugin=fsdp_plugin)
+    else:
+        accelerator = Accelerator(gradient_accumulation_steps=args.gradient_accumulation_steps)
 
     # get world_size
     args.world_size = accelerator.num_processes
-    
+
     # fix randomness
     if args.seed is not None:
         set_seed(args.seed)
-    
+
     # backup args
     pprint_args(args, accelerator)
     if accelerator.is_main_process:
         if not os.path.exists(args.output_dir):
             os.makedirs(args.output_dir)
-        with open(os.path.join(args.output_dir, "args.json"), "w") as f:   
+        with open(os.path.join(args.output_dir, "args.json"), "w") as f:
             json.dump(args.dict(), f, indent=2)
 
     # logger
@@ -314,7 +290,7 @@ def main():
     else:
         print_rank_0('> load tokenized bin dataset, refer to gpt_neox indexed dataset')
         train_dataset, valid_dataset, _ = load_dataset_from_bin(args=args)
-    
+
     t1 = time.time()
     logger.info(f"dataset loading time: {t1 - t0:.4f}")
 
@@ -362,7 +338,8 @@ def main():
             ) if args.quantization == '4bit' else None,
         )
     else:
-        accelerator.print(f"[INFO] Model Type {args.model_type} is NOT supported FA2 by Transformers and we use published modeling_xxx.py(may be modified by us)")
+        accelerator.print(f"[INFO] Model Type {args.model_type} is NOT supported officially by Transformers "
+                          f"and we use published modeling_xxx.py(may be modified by us)")
         model = ModelClass.from_pretrained(
             args.pretrained_model_path,
             load_in_8bit=(args.quantization == '8bit'),
@@ -375,10 +352,11 @@ def main():
                 bnb_4bit_quant_type="nf4",
             ) if args.quantization == '4bit' else None,
         )
-    
+
     # build a tokenizer for possible resizing or saving
     tokenizer = build_tokenizer(args)
-    # Note: resize_token_embeddings expects to receive the full size of the new vocabulary, i.e. the length of the tokenizer.
+    # Note: resize_token_embeddings expects to receive the full size of the new vocabulary,
+    # i.e. the length of the tokenizer.
     # 如果新增special tokens, 需要resize input embedding 和output embedding
     # model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=32)
 
@@ -396,8 +374,9 @@ def main():
             # args.saving_limit = None
     else:
         model.gradient_checkpointing_enable()
-        assert args.saving_limit is not None and isinstance(args.saving_limit, int),  "saving_limit must be a integer in Full Training"
-    
+        assert (args.saving_limit is not None and isinstance(args.saving_limit,
+                                                             int)), "saving_limit must be a integer in Full Training"
+
     # Potentially load in the lora from a previous save
     if args.peft_type:
         if not args.resume_from_checkpoint:
@@ -407,13 +386,13 @@ def main():
             accelerator.print(f"Resumed from checkpoint: {args.resume_from_checkpoint}")
             # accelerator.load_state(args.resume_from_checkpoint)
             model = PeftModel.from_pretrained(model, args.resume_from_checkpoint, is_trainable=True)
-        
+
         model.print_trainable_parameters()
 
     t2 = time.time()
     if accelerator.is_main_process:
         logging.info(f"model loading time: {t2 - t1:.4f}")
-    
+
     model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
     model.config.use_logn_attn = False  # special for qwen model
     accelerator.print(model.config)
@@ -427,10 +406,21 @@ def main():
         valid_dataset, collate_fn=DataCollatorForMFTDataset(args), batch_size=args.per_device_eval_batch_size,
         pin_memory=True, drop_last=True
     )
+    if accelerator.distributed_type == DistributedType.DEEPSPEED:
+        accelerator.print("DISTRIBUTED TRAINING USING DEEPSPEED")
+        from deepspeed.ops.adam import FusedAdam as Adam
+        adam_optimizer = Adam
+    elif accelerator.distributed_type == DistributedType.FSDP:
+        accelerator.print("DISTRIBUTED TRAINING USING FSDP")
+        if getattr(accelerator.state, "fsdp_plugin", None) is not None:
+            from peft.utils.other import fsdp_auto_wrap_policy
+            accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)
+        model = accelerator.prepare(model)
+        adam_optimizer = torch.optim.AdamW
+    else:
+        accelerator.print(f"DISTRIBUTED TRAINING USING {accelerator.distributed_type}")
+        adam_optimizer = torch.optim.AdamW
 
-    from deepspeed.ops.adam import FusedAdam as Adam
-
-    adam_optimizer = Adam
     optimizer = adam_optimizer(
         model.parameters(),
         weight_decay=args.weight_decay,
@@ -451,10 +441,19 @@ def main():
         num_warmup_steps=args.num_warmup_steps * args.gradient_accumulation_steps,
         num_training_steps=args.max_train_steps * args.gradient_accumulation_steps,
     )
-
-    model, train_dataloader, valid_dataloader, optimizer, lr_scheduler = accelerator.prepare(
-        model, train_dataloader, valid_dataloader, optimizer, lr_scheduler
-    )
+    if accelerator.distributed_type == DistributedType.DEEPSPEED:
+        model, train_dataloader, valid_dataloader, optimizer, lr_scheduler = accelerator.prepare(
+            model, train_dataloader, valid_dataloader, optimizer, lr_scheduler
+        )
+    elif accelerator.distributed_type == DistributedType.FSDP:
+        optimizer, train_dataloader, valid_dataloader, lr_scheduler = accelerator.prepare(
+            optimizer, train_dataloader, valid_dataloader, lr_scheduler
+        )
+    else:
+        # may be not suitable for all DistributedType, expected to be ok with simple multi-gpu
+        model, train_dataloader, valid_dataloader, optimizer, lr_scheduler = accelerator.prepare(
+            model, train_dataloader, valid_dataloader, optimizer, lr_scheduler
+        )
     print(model.device)
     accelerator.print(model)
     # accelerator.print(model.config)
@@ -470,7 +469,9 @@ def main():
     is_ds_zero_3 = False
     if getattr(accelerator.state, "deepspeed_plugin", None):
         is_ds_zero_3 = accelerator.state.deepspeed_plugin.zero_stage == 3
-    accelerator.print(f"is_ds_zero_3: {is_ds_zero_3}")
+        accelerator.print(f"DEEPSPEED plugin: {accelerator.state.deepspeed_plugin}")
+    elif getattr(accelerator.state, "fsdp_plugin", None):
+        accelerator.print(f"FSDP plugin: {accelerator.state.fsdp_plugin}")
 
     # Train!
     accelerate_train(accelerator,

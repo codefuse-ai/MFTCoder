@@ -154,6 +154,7 @@ class TrainArgs:
     # role_markers: {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
     role_markers: Union[None, dict] = None
 
+    distributed_type: Union[None, str] = "deepspeed"
     # legacy, leave them
     use_xformers: bool = True
     trust_remote_code: bool = True
