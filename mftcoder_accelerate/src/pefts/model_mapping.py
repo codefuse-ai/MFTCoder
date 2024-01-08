@@ -1,6 +1,7 @@
 """
  # @author Chaoyu Chen
- # @date 2023/10/11
+ # @date 2023/12/11
+
  Manage supported models and their special token used in training.
  Default targeting modules for LoRA/QLora
  4.36 is stable now
@@ -8,7 +9,7 @@
 # Models that Transformers support FA2
 from transformers import (
     AutoConfig,
-    AutoTokenizer, 
+    AutoTokenizer,
     AutoModelForCausalLM,
     GPTNeoXForCausalLM,
     GPTBigCodeForCausalLM,
@@ -24,6 +25,7 @@ from model.baichuan2.modeling_baichuan import BaichuanForCausalLM
 from model.qwen.modeling_qwen import QWenLMHeadModel
 from model.chatglm2.modeling_chatglm import ChatGLMForConditionalGeneration as ChatGLMForConditionalGeneration2
 from model.chatglm3.modeling_chatglm import ChatGLMForConditionalGeneration as ChatGLMForConditionalGeneration3
+
 # from model.phi.modeling_mixformer_sequential import MixFormerSequentialForCausalLM
 
 MODEL_TYPES = {
@@ -43,21 +45,20 @@ MODEL_TYPES = {
 }
 
 FULL_LORA_TARGETING_MODULES = {
-    "aquila": ["q_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
+    "aquila": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
     "baichuan": ["W_pack", "o_proj", "gate_proj", "down_proj", "up_proj"],
     "chatglm2": ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"],
     "chatglm3": ["query_key_value", "dense", "dense_h_to_4h", "dense_4h_to_h"],
-    "deepseek": ["q_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
-    "code_llama": ["q_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
+    "deepseek": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
+    "code_llama": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
     "gpt_neox": ["query_key_value", 'dense', 'dense_h_to_4h', 'dense_4h_to_h'],
-    "llama": ["q_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
+    "llama": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
     "mistral": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "down_proj", "up_proj"],
     "mixtral": ["q_proj", "k_proj", "v_proj", "o_proj"],
     "phi": ["query_key_value", 'dense', 'fc1', 'fc2'],
     "qwen": ["c_proj", "c_attn", "w1", "w2"],
-    "starcoder": ["c_proj", "c_attn", "q_attn", "c_fc"],   
+    "starcoder": ["c_proj", "c_attn", "q_attn", "c_fc"],
 }
-
 
 MODEL_SPECIAL_TOKENS = {
     "gpt_neox": {
@@ -94,7 +95,7 @@ MODEL_SPECIAL_TOKENS = {
 
         "eos_token": "<|endoftext|>",
         "pad_token": "<|extra_1|>",
-        
+
     },
     "chatglm2": {
 
@@ -125,7 +126,7 @@ MODEL_SPECIAL_TOKENS = {
         "pad_token": "<｜end▁of▁sentence｜>",
 
     },
-     "mixtral": {
+    "mixtral": {
 
         "eos_token": "</s>",
         "pad_token": "<unk>",

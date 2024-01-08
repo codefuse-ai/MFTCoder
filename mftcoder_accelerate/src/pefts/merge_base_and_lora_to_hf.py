@@ -1,7 +1,8 @@
 """
 # @author Chaoyu Chen
 # @date 2023/10/19
-Merge base and adaptor
+
+Merge base and lora adaptor
 """
 import os
 import sys

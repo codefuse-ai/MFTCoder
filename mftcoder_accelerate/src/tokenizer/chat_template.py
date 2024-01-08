@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# @author qumu
+# @author Chaoyu Chen
 # @date 2023/12/25
-# @module chat_template
+
 # store possible chat_template for tokenizers to prepare input string
 # -------------------------------------------------- Import ------------------------------------------------------------
 from transformers import (

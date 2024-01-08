@@ -1,3 +1,8 @@
+#!/bin/sh
+# Author: Chaoyu Chen
+# Last Modified: 2024/12/11
+# Description: An alternative(Command line) way to launch DeepSpeed training
+
 # Launch script on single node
 N_GPU_PER_NODE=8
 
@@ -26,5 +31,5 @@ accelerate launch \
     --machine_rank 0 \
     --rdzv_backend 'static' \
     pefts/mft_accelerate.py --train_config configs/"xxx_train_config.json" \
-      --distributed_type "DeepSpeed" \
+      --distributed_type "deepspeed" \
         > MFTCoder-training-"$TODAY".log 2>&1 &

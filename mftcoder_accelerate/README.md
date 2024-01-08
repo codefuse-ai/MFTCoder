@@ -280,10 +280,16 @@ However, this may slightly slow down the training speed.
 
 #### Q2：install packages
 Please refer to init_env.sh and requirements.txt
-
+We highly recommend you install Flash Attention 2 (flash_attn>=2.1.0, 2.3.6 used by us) first to get memory-efficient and fast training.
 
 #### Q3：How should I specify the GPUs for training？
 You can specify the visiable GPUs as below:
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file accelerate_ds_config.yaml mft_accelerate.py --train_config configs/xxx_train_config.json
+CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json
 ```
+
+#### Q4：Whats is a recommended Distributed Training?
+For LoRA/QLoRA, we recommend DeepSpeed(ZeRO2) as the underlying framework, because it is easy and stable to use, moreover it is more compatable for different settings.
+And FSDP does not support Quantization(integer type in training).
+
+For Full-parameter finetuning, FSDP is usually faster, and may help you with very large models by sharding parameters and gradients.

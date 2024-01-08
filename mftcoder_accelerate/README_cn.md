@@ -78,7 +78,7 @@
 
 
 ## 3. 模型训练
-目前支持全量参数指令微调、QLoRA指令微调，LoRA指令微调。
+目前支持全量参数(Full-parameters)指令微调、QLoRA指令微调，LoRA指令微调。
 一些优秀的代码预训练模型权重，理论上，HuggingFace上开源的模型，均可使用本项目进行训练：
 
 🤗 [最新代码预训练SOTA，CodeLlama](https://huggingface.co/codellama/CodeLlama-34b-Python-hf) ：code-llama-34b， code-llama-34b-python, 新的SOTA基座。
@@ -109,6 +109,8 @@ cd mftcoder_accelerate/src
 这种方式充分利用了模型并行计算的优势，训练更加高效，同时也充分利用了decoder-only模型从左到右attention的特性，一次性将多轮对话中的每个target部分都参与了训练，训练更充分高效。
 
 ### 3.2 LoRA/QLoRA微调
+
+#### LoRA/QLoRA微调简介
 关于LoRA的详细介绍可参考论文：[LORA: LOW-RANK ADAPTATION OF LARGE LANGUAGE MODELS](https://arxiv.org/pdf/2106.09685.pdf)
 
 关于QLoRA的详细介绍可参考论文：[QLORA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/pdf/2305.14314.pdf)
@@ -116,11 +118,25 @@ cd mftcoder_accelerate/src
 QLoRA通过4-bit的nf4量化，且加入更多adapter，在大幅减少显存消耗的同时，尽可能逼近全量参数微调的效果。
 QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调，并且性能逼近全量参数微调。
 
-执行如下命令即可进行Lora/QLora/全量 微调：
-
+执行如下命令即可进行 Lora/QLora/全量 微调：
+#### Launch via Deepspeed
 deepspeed配置在accelerate_ds_config.yaml中。
 ```bash
-accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json
+accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "deepspeed" 
+```
+或者
+
+修改并执行如下sh脚本：
+
+deepspeed配置在脚本中通过命令行输入。
+```bash
+sh ds_single_launch.sh
+```
+
+#### Launch via FSDP
+deepspeed配置在accelerate_ds_config.yaml中。
+```bash
+accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "fsdp"
 ```
 或者
 
@@ -226,19 +242,23 @@ print(gen_text)
 #### 问题3：如何指定使用某些卡训练？
 通过如下方式，即可指定使用0和1号卡进行训练:
 ```bash
-CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_config.yaml mft_accelerate.py --train_config configs/xxx_train_config.json
+CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "deepspeed"
 ```
 
-#### 问题4：如果无法安装flash attention 2, 该如何训练
-参数"attn_implementation" 设置成 "eager" 可以用naive attention
+#### 问题4：关于Flash Attention, 该如何配置训练？
+首先，我们强烈建议您安装Flash Attention 2(FA2)，（>=2.1.0, 2.3.6功能更齐全）。
 
-如果你可以自行安装环境并使用torch>=2.1.1，可以尝试设置参数"attn_implementation"为 "sdpa"。这样会尝试使用transformers兼容的torch.nn.functional.scaled_dot_product_attention。支持的模型不全面。
+训练参数中"attn_implementation" 设置成 "eager" 可以用naive attention，也就是未经加速的attention。
 
-#### 问题5：在FDSP模式下，使用LoRA + Flash Attention，需要注意什么？
-FSDP模式下，由于dtype统一的问题，FA需要将queue, key, value同时加入target_modules，适配这种情况不影响最终结果。
+训练参数中"attn_implementation" 设置成 "flash_attention_2" 可以用FA2，速度快，省显存。
 
-FSDP模式下，不支持QLoRA, 因为目前对int类型的支持不够完全。
+如果你可以自行安装环境并使用torch>=2.1.1，可以尝试设置参数"attn_implementation"为 "sdpa"。这样会尝试使用transformers兼容的torch.nn.functional.scaled_dot_product_attention。支持的模型还不全面。
 
+#### 问题5：推荐的分布式框架是怎样的？
+对于LoRA/QLoRA, 我们推荐使用DeepSpeed作为底层分布式框架，它具有易用性和兼容性好的特点，并且速度很快。
+FSDP 不支持QLoRA, 因为bitsandbytes暂不支持FSDP。
+
+对于全量微调，我们推荐使用FSDP， 因为它在全量训练时可以发挥fully sharding的优势，已达到更快的训练速度。
 
 #### 问题6：当前支持的模型中，有什么区别
 国产大模型比如chatglm2， chatglm3， baichuan2， qwen， aquila2等，使用的是和模型共同发布的modeling_xxx.py. 

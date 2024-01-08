@@ -1,5 +1,5 @@
 """
-# @author qumu
+# @author Chaoyu Chen
 # @date 2023/12/11
 # @module mft_accelerate.py
 
@@ -374,8 +374,7 @@ def main():
             # args.saving_limit = None
     else:
         model.gradient_checkpointing_enable()
-        assert (args.saving_limit is not None and isinstance(args.saving_limit,
-                                                             int)), "saving_limit must be a integer in Full Training"
+        assert (args.saving_limit is not None and isinstance(args.saving_limit, int)), "saving_limit must be a integer in Full Training"
 
     # Potentially load in the lora from a previous save
     if args.peft_type:
@@ -412,7 +411,7 @@ def main():
         adam_optimizer = Adam
     elif accelerator.distributed_type == DistributedType.FSDP:
         accelerator.print("DISTRIBUTED TRAINING USING FSDP")
-        if getattr(accelerator.state, "fsdp_plugin", None) is not None:
+        if args.peft_type and getattr(accelerator.state, "fsdp_plugin", None) is not None:
             from peft.utils.other import fsdp_auto_wrap_policy
             accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)
         model = accelerator.prepare(model)
