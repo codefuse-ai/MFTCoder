@@ -1,4 +1,4 @@
-# MFTCoder: 多任务大模型代码能力微调框架
+# MFTCoder: 高效准确的多任务大模型微调框架
 
 <p align="center">
   <img src="./assets/github-codefuse-logo-update.jpg" width="50%" />
@@ -89,18 +89,18 @@
 
 :white_check_mark: **多模型**：支持最新的多个开源模型，包括gpt-neox，llama，llama-2，baichuan，Qwen，chatglm2等；
 
-:white_check_mark: **多框架**：同时支持HuggingFace 和 [ATorch 框架](https://github.com/intelligent-machine-learning/dlrover)；
+:white_check_mark: **多框架**：既支持主流开源的Accelerate+DeepSpeed/FSDP，也支持新开源的[ATorch 框架](https://github.com/intelligent-machine-learning/dlrover)；
 
 :white_check_mark: **高效微调**：支持LoRA和QLoRA，可以用很少的资源去微调很大的模型，且训练速度能满足几乎所有微调场景；
 
 
 本项目主要内容如下：
 - 同时支持单任务SFT(Supervised FineTuning)和MFT(Multi-task FineTuning), 当前开源支持数据均衡，未来将持续开源难易均衡， 收敛均衡等
-- 支持QLoRA低成本高效指令微调、LoRA高效指令微调。
-- 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
+- 支持QLoRA低成本高效指令微调、LoRA高效指令微调、全量参数高精度微调。
+- 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如Deepseek-coder, Mistral, Mistral(MoE), Chatglm3, Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
 - 支持lora与base model进行权重合并，推理更便捷。
 - 整理并开源2个指令微调数据集：[Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)和[CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k)。
-- 开源2个[Codefuse系列指令微调模型权重]：[CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)和[CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)。
+- 开源多个[Codefuse系列指令微调模型权重]，具体参见我们的huggingface组织和modelscope组织下的模型：[codefuse-ai huggingface](https://huggingface.co/codefuse-ai) or [codefuse-ai 魔搭](https://modelscope.cn/organization/codefuse-ai)。
 
 
 
@@ -110,12 +110,17 @@
 ```bash
 sh init_env.sh
 ```
-如果希望使用flash attention, 安装请参考 https://github.com/Dao-AILab/flash-attention
+我们强烈建议您安装flash attention（>=2.1.0, 推荐2.3.6）, 安装请参考 https://github.com/Dao-AILab/flash-attention
 
 ## 训练
-🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
+如果你熟悉大模型训练的各种主流开源资源，例如 ```transformers```, ```DeepSpeed```, ```FSDP```等， 为了用开源项目快速上手高性能微调，我们建议您尝试：
 
-🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
+🚀🚀 [MFTCoder-accelerate: Accelerate + DeepSpeed/FSDP Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
+
+
+如果你想探索一些新兴的训练框架，可以尝试：
+
+🚀 [MFTCoder-atorch: Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## 模型
