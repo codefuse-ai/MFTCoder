@@ -94,6 +94,7 @@ def is_question_response_format(data):
     else:
         return False
 
+
 def is_question_answer_format(data):
     if "question" in data and "answer" in data:
         return True
@@ -131,10 +132,10 @@ class Encoder(object):
 
 
 class UniformEncoder(Encoder):
-    
 
     def __init__(self, args, mode='sft'):
         super().__init__(args)
+        self.verbose = False
         self.mode = mode
         # seq_length + 1 for shifting
         if args.load_raw_dataset:
@@ -268,7 +269,6 @@ class UniformEncoder(Encoder):
             input_ids += prompt_ids + answer_ids
             loss_mask += [0] * len(prompt_ids) + [1] * len(answer_ids)
 
-            
         # print(self.mode)
         if self.mode == 'pretrain':
             # change loss mask to all 1s

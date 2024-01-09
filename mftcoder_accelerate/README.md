@@ -8,11 +8,17 @@
 
 ## 1. Updates
 
-🔥 MFTCoder supports QLoRA/LoRA using Huggingface accelerate + DeepSpeed Framework;
+🔥 MFTCoder-accelerate supports Full-parameters/LoRA using accelerate + FSDP Framework;
 
-🔥 MFTCoder supports Multiple Task Finetuning, which is able to balance diffenrent tasks in data level.
+🔥 MFTCoder-accelerate supports MFT/SFT on more new mainstream open-source base models: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3;
 
-🔥 MFTCoder supports finetuning multiple mainstream open-source base models: codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen.
+🔥 MFTCoder-accelerate supports Self-Paced Loss for Convergence Balance;
+
+🔥 MFTCoder-accelerate supports Full-parameters/QLoRA/LoRA using accelerate + DeepSpeed Framework;
+
+🔥 MFTCoder-accelerate supports Multiple Task Finetuning, which is able to balance diffenrent tasks in data level.
+
+🔥 MFTCoder-accelerate supports finetuning multiple mainstream open-source base models: codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen.
 
 ## 2. Data Format
 ### 2.1 Training Data Format
@@ -54,8 +60,8 @@ For the keys of roles in "chat_rounds", you could use "system/human/bot" tuple o
 }
 ```
 
-### 2.2 Inference Data Format
-The inference data contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
+### 2.2 Default Inference Data Format
+The default inference data contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
 It is used as the data "seen"(before tokenization) by the model in training process.
 It is used as input during the inference process as well.
 Here is an example format of the concatenated string:
@@ -86,7 +92,7 @@ When applying inference, you always make your input string end with ```<s>bot\n`
 
 
 ## 3. Model Training
-Currently, the "MFTCoder_accelerate" codebase supports QLoRA instruction fine-tuning, and LoRA instruction fine-tuning and Full parameter MFT. 
+Currently, the "MFTCoder-accelerate" codebase supports Full-parameters/LoRA/QLoR along with Multi-Task FineTuning(MFT). 
 In theory, this project can be used to train any publicly available model in the HuggingFace Format.
 
 Here are some excellent pre-trained models weights available on Huggingface that can be finetuned with this codebase:
@@ -96,6 +102,36 @@ Here are some excellent pre-trained models weights available on Huggingface that
 🤗 [Best 10B level pre-trained Code LLM, Starcoder:](https://huggingface.co/bigcode/starcoder) wizardCoder-15B, PanGu-coder2, and other previous SOTA were trained on it.
 
 🤗 [Multilingual powerhouse, Qwen-7b](https://huggingface.co/Qwen/Qwen-7B): Suitable for multilingual tasks, including Chinese tasks, for instruction fine-tuning.
+
+**mftcoder_accelerate directory structure**
+```
+mftcoder_accelerate
+       |
+       src
+          configs
+          |
+          data
+          |
+          model
+          |
+          *pefts*
+          |
+          tokenizer
+          |
+          utils
+       |
+       evals
+```
+我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
+
+训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+
+参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
+
+**_所以，在你开启训练之前，请进入src目录_**
+```
+cd mftcoder_accelerate/src
+```
 
 You can find the implementations in the ```mftcoder_accelerate/src``` directory.
 The entry directory for fine-tuning training is ```mftcoder_accelerate/src```, and the entry file for training is ```mftcoder_accelerate/src/pefts/mft_accelerate.py```. 
@@ -107,7 +143,9 @@ cd mftcoder_accelerate/src
 ```
 
 ### 3.1 Tokenization
-During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned earlier) and then tokenize it. In this format, ```<s>human\n``` starts the user's input (i.e., prompt),```<s>bot\n``` starts the assistant's output (i.e., response)
+During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned before) and then tokenize it. 
+
+In default format, ```<s>human\n``` starts the user's input (i.e., prompt),```<s>bot\n``` starts the assistant's output (i.e., response)
 
 ```{EOS_TOKEN}``` represents the proper eos_token.
 We have different eos_tokens in ```src/pefts/model_mapping.py``` which fits different base models.
@@ -122,7 +160,10 @@ By including all target parts from multiple turns in a single training iteration
 
 
 ### 3.2 LoRA/QLoRA
+
+#### Intro
 You can refer to the Lora paper for details about LoRA：[LORA: LOW-RANK ADAPTATION OF LARGE LANGUAGE MODELS](https://arxiv.org/pdf/2106.09685.pdf)
+
 You can refer to the Qlora paper for details about QLoRA：[QLORA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/pdf/2305.14314.pdf)
 
 QLoRA (Quantized LoRA) is a method that combines 4-bit nf4 quantization and additional adapters to achieve a balance between reducing GPU memory consumption and approaching the performance of full-parameter fine-tuning.
@@ -130,20 +171,30 @@ QLoRA (Quantized LoRA) is a method that combines 4-bit nf4 quantization and addi
 According to the QLoRA paper, this method enables fine-tuning of a 33B model on a single V100 GPU while achieving performance close to that of full-parameter fine-tuning.
 
 To perform LoRA/QLoRA fine-tuning, you can execute the following command:
-```bash
-cd mftcoder_accelerate/src
 
-accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/lora_train_config.json
+#### Launch via Deepspeed
+DeepSpeed config in accelerate_ds_config.yaml.
+```bash
+accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
 ```
-OR
-
-You can launch the training by:
+or
+DeepSpeed config in command line arguments
 ```bash
-cd mftcoder_accelerate/src
-
 sh ds_single_launch.sh
 ```
 
+#### Launch via FSDP
+FSDP config in accelerate_fsdp_config.yaml.
+```bash
+accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "FSDP"
+```
+or
+FSDP config in command line arguments
+```bash
+sh ds_single_launch.sh
+```
+
+#### Traing Arguments
 All arguments allowed in ***_train_config.josn are defined in ```arguments.py```.
 
 Frequently used arguments are provided in ```configs/***_train_config``` and explained as follows. You can modify these parameters according to your needs:
@@ -209,6 +260,8 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 - **seed**: Random seed for reproducibility.
 
 - **saving_limit**: ckpt saving limit num, must be set in Full-parameter training.
+
+- **role_markers**: {"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n} as default(null). You could set your preferred role_markers as the templates startting "system", "user" and "assistant". e.g. {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
 
 ## 4. Model Usage

@@ -7,12 +7,17 @@
 [**中文**] [[English]](README.md)
 
 ## 1. 更新
+🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA;
 
-🔥 MFTCoder在Huggingface accelerate + DeepSpeed框架下支持QLoRA/LoRA微调； 
+🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3；
 
-🔥 MFTCoder在训练中支持了多任务微调， 可以同时平衡多个任务的训练，训练的模型支持多任务推理； 
+🔥 MFTCoder-accelerate 新增self-paced Loss, 用于收敛均衡；
 
-🔥 MFTCoder在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等
+🔥 MFTCoder-accelerate 支持使用accelerate + DeepSpeed框架下支持 全量参数/QLoRA/LoRA微调； 
+
+🔥 MFTCoder-accelerate 在训练中支持了多任务微调MFT， 可以同时平衡多个任务的训练，训练的模型支持多任务推理； 
+
+🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等
 
 ## 2. 数据格式
 ### 2.1 训练数据格式
@@ -87,8 +92,26 @@
 
 🤗 [多语言能手Qwen-7b](https://huggingface.co/Qwen/Qwen-7B) ：适用于多语言任务，也适用中文任务。进行指令微调时。
 
-我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化，详见src目录下的实现。
-微调训练的根目录是```mftcoder_accelerate/src/```, 
+**mftcoder_accelerate文件结构**
+```
+mftcoder_accelerate
+       |
+       src
+          configs
+          |
+          data
+          |
+          model
+          |
+          *pefts*
+          |
+          tokenizer
+          |
+          utils
+       |
+       evals
+```
+我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
 
 训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
 
@@ -99,9 +122,14 @@
 cd mftcoder_accelerate/src
 ```
 
+
+
 ### 3.1 数据tokenization
-训练时，我们将多轮对话拼接成如下格式（也是上文中的推理string格式），然后进行tokenize。其中```<s>human\n```表示human输入提示符，```<s>bot\n```表示bot输出提示符，```{EOS_TOKEN}``` 表示eos_token。
-其中eos_token可以根据不同模型修改替换。
+训练时，我们将多轮对话拼接成如下格式（也是上文中的推理数据格式），然后进行tokenize。
+其中，默认情况下：
+
+```<s>human\n```作为human/user的起始符，```<s>bot\n```作为bot/assistant的起始符，```{EOS_TOKEN}``` 表示eos_token。
+其中eos_token可以根据不同模型修改替换。不同角色的起始符可以配置，用来实现不同的对话/问答模版。
 ```
 "<s>human\n{input1}<s>bot\n{target1}{EOS_TOKEN}<s>human\n{input2}<s>bot\n{target2}{EOS_TOKEN}\n"
 ```
@@ -147,39 +175,41 @@ deepspeed配置在脚本中通过命令行输入。
 sh ds_single_launch.sh
 ```
 
+#### 训练参数
 _**训练需要的参数配置在```configs/*_train_config```中，主要参数说明如下：**_
 
-- load_raw_dataset : 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
-- data_paths: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据
-- output_dir：训练输出目录，存储checkpoint(全量训练时)、lora_adaptor（Lora或者Qlora时）等
-- tb_dir: 存储tensorboard等
-- model_type: "mixtral|mistral|deepseek|llama|starcoder|chatglm2|qwen|gpt_neox"
-- attn_implementation: "flash_attention_2" 或者 "eager"
-- peft_type: lora或者qlora或者null(全量微调)
-- lora_rank: lora rank
-- lora_alpha: lora alpha
-- lora_dropout: lora dropout
-- target_modules: List[str], lora目标模块，如果null，会使用默认，参考model_mapping.py
-- quantization: 是否量化，"4bit", "8bit" 或者null， qlora推荐4bit量化
-- pretrained_model_path：预训练模型的本地目录，或者在huggingface上的模型名称。
-- weighted_loss_mode: 多任务loss加权模式， "case3"是当前推荐。
-- padding_mode: 数据的样本组织方式， "padding"是将每个原始样本填充到seq_length, "pack"是将尽量多的样本打包到每个seq_length的序列中。
-- num_train_epochs：训练的轮次。如果数据量足够大，一般建议只训1-2个epoch。
-- per_device_train_batch_size：每张显卡train的batch size。
-- per_device_eval_batch_size：每张显卡eval的batch size。
-- gradient_accumulation_steps：梯度累计步数。global batch=num_gpus * per_device_train_batch_size * gradient_accumulation_steps。
-- learning_rate：学习率。全量参数微调的时候，建议小一些，1e-5或5e-6。qlora中的学习率设置更大一些，一般为1e-4、2e-4。
-- min_lr: 最低学习率， 一般是learning_rate的十分之一
-- seq_length：训练时的最大长度。按照自己的设备进行设置，越长需要占用越多显存。
-- log_interval：每隔多少步统计一次train loss。
-- checkpointing_steps：每隔多少步保存一个模型。
-- evalation_steps：每隔多少步在验证集上evaluate一次。
-- early_stopping ： 是否执行early_stop
-- early_stopping_stall_num： 多少个eval point不继续收敛，则停止训练
-- lr_scheduler_type：学习率变化策略。常用"cosine"
-- warmup_steps：warm up步数。学习率经过多少步，增长到指定的数值。
-- seed：随机种子，用于复现实验结果。
-- saving_limit：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
+- **load_raw_dataset**: 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
+- **data_paths**: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据
+- **output_dir**：训练输出目录，存储checkpoint(全量训练时)、lora_adaptor（Lora或者Qlora时）等
+- **tb_dir**: 存储tensorboard等
+- **model_type**: "mixtral|mistral|deepseek|llama|starcoder|chatglm2|qwen|gpt_neox"
+- **attn_implementation**: "flash_attention_2" 或者 "eager"
+- **peft_type**: lora或者qlora或者null(全量微调)
+- **lora_rank**: lora rank
+- **lora_alpha**: lora alpha
+- **lora_dropout**: lora dropout
+- **target_modules**: List[str], lora目标模块，如果null，会使用默认，参考model_mapping.py
+- **quantization**: 是否量化，"4bit", "8bit" 或者null， qlora推荐4bit量化
+- **pretrained_model_path**：预训练模型的本地目录，或者在huggingface上的模型名称。
+- **weighted_loss_mode**: 多任务loss加权模式， "case3"是当前推荐。
+- **padding_mode**: 数据的样本组织方式， "padding"是将每个原始样本填充到seq_length, "pack"是将尽量多的样本打包到每个seq_length的序列中。
+- **num_train_epochs**：训练的轮次。如果数据量足够大，一般建议只训1-2个epoch。
+- **per_device_train_batch_size**：每张显卡train的batch size。
+- **per_device_eval_batch_size**：每张显卡eval的batch size。
+- **gradient_accumulation_steps**：梯度累计步数。global batch=num_gpus * per_device_train_batch_size * gradient_accumulation_steps。
+- **learning_rate**：学习率。全量参数微调的时候，建议小一些，1e-5或5e-6。qlora中的学习率设置更大一些，一般为1e-4、2e-4。
+- **min_lr**: 最低学习率， 一般是learning_rate的十分之一
+- **seq_length**：训练时的最大长度。按照自己的设备进行设置，越长需要占用越多显存。
+- **log_interval**：每隔多少步统计一次train loss。
+- **checkpointing_steps**：每隔多少步保存一个模型。
+- **evaluation_steps**：每隔多少步在验证集上evaluate一次。
+- **early_stopping** ： 是否执行early_stop
+- **early_stopping_stall_num**： 多少个eval point不继续收敛，则停止训练
+- **lr_scheduler_type**：学习率变化策略。常用"cosine"
+- **warmup_steps**：warm up步数。学习率经过多少步，增长到指定的数值。
+- **seed**：随机种子，用于复现实验结果。
+- **saving_limit**：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
+- **role_markers**: null，即使用{"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n}。 你可以自定义 "system", "user" and "assistant"的模板， 用于定制自己的问答或者对话模板，比如 {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
 ## 4. 模型使用
 
