@@ -30,28 +30,23 @@
     "chat_rounds":[
         {
             "role": "system",
-            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题",
-            "chat_round_id": 0
+            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题"
         },
         {
             "role": "human",
-            "content": "写一个快速排序", 
-            "chat_round_id": 1
+            "content": "写一个快速排序"
         },
         {
             "role": "bot",
-            "content": "以下是一个快速排序算法xxxxxx", 
-            "chat_round_id": 1
+            "content": "以下是一个快速排序算法xxxxxx"
         },
         {
             "role": "human",
-            "content": "解释一下这段代码", 
-            "chat_round_id": 2
+            "content": "解释一下这段代码"
         },
         {
             "role": "bot",
-            "content": "好的，这段代码xxx", 
-            "chat_round_id": 2
+            "content": "好的，这段代码xxx"
         }
     ]
 }
@@ -59,7 +54,7 @@
 
 ### 2.2 推理数据格式
 推理数据格式为模型在训练数据格式下拼接的字符串形式，它也是推理时输入prompt拼接的方式：
-```python
+```
 """
 <s>system
 这是System指令
@@ -148,31 +143,27 @@ QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调�
 
 执行如下命令即可进行 Lora/QLora/全量 微调：
 #### Launch via Deepspeed
-deepspeed配置在accelerate_ds_config.yaml中。
+DeepSpeed配置在accelerate_ds_config.yaml中。
 ```bash
-accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "deepspeed" 
+accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
 ```
 或者
 
-修改并执行如下sh脚本：
-
-deepspeed配置在脚本中通过命令行输入。
+DeepSpeed配置在脚本中通过命令行输入。
 ```bash
 sh ds_single_launch.sh
 ```
 
 #### Launch via FSDP
-deepspeed配置在accelerate_ds_config.yaml中。
+FSDP配置在accelerate_fsdp_config.yaml中。
 ```bash
-accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "fsdp"
+accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "FSDP"
 ```
 或者
 
-修改并执行如下sh脚本：
-
-deepspeed配置在脚本中通过命令行输入。
+FSDP配置在脚本中通过命令行输入。
 ```bash
-sh ds_single_launch.sh
+sh fsdp_single_launch.sh
 ```
 
 #### 训练参数
@@ -209,7 +200,7 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 - **warmup_steps**：warm up步数。学习率经过多少步，增长到指定的数值。
 - **seed**：随机种子，用于复现实验结果。
 - **saving_limit**：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
-- **role_markers**: null，即使用{"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n}。 你可以自定义 "system", "user" and "assistant"的模板， 用于定制自己的问答或者对话模板，比如 {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
+- **role_markers**: null，即使用{"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n"}。 你可以自定义 "system", "user" and "assistant"的模板， 用于定制自己的问答或者对话模板，比如 {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
 ## 4. 模型使用
 
@@ -288,7 +279,7 @@ CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_con
 对于LoRA/QLoRA, 我们推荐使用DeepSpeed作为底层分布式框架，它具有易用性和兼容性好的特点，并且速度很快。
 FSDP 不支持QLoRA, 因为bitsandbytes暂不支持FSDP。
 
-对于全量微调，我们推荐使用FSDP， 因为它在全量训练时可以发挥fully sharding的优势，已达到更快的训练速度。
+对于全量微调，我们推荐使用FSDP， 因为它在全量训练时可以发挥fully sharding的优势，达到更快的训练速度。
 
 #### 问题6：当前支持的模型中，有什么区别
 国产大模型比如chatglm2， chatglm3， baichuan2， qwen， aquila2等，使用的是和模型共同发布的modeling_xxx.py. 

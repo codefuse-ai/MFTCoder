@@ -16,13 +16,14 @@
 
 🔥 MFTCoder-accelerate supports Full-parameters/QLoRA/LoRA using accelerate + DeepSpeed Framework;
 
-🔥 MFTCoder-accelerate supports Multiple Task Finetuning, which is able to balance diffenrent tasks in data level.
+🔥 MFTCoder-accelerate supports Multitask Fine-Tuning(MFT), which is able to balance diffenrent tasks in data level.
 
-🔥 MFTCoder-accelerate supports finetuning multiple mainstream open-source base models: codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen.
+🔥 MFTCoder-accelerate supports finetuning most of mainstream open-source base models: codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen.
 
 ## 2. Data Format
 ### 2.1 Training Data Format
-The training data is in a uniformed JSONL format, in which each line of data has the following JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on specific needs. 
+The training data is required to be a uniformed JSONL format, in which each line of data has the following "chatML"-style JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on specific needs. 
+The reason why we selected "chatML" style as our training and inference data format is that "chatML" style is compatible with both "conversation" and "instruction/response" scenarios.
 
 For the keys of roles in "chat_rounds", you could use "system/human/bot" tuple or "system/user/assistant" tuple.
 
@@ -33,40 +34,36 @@ For the keys of roles in "chat_rounds", you could use "system/human/bot" tuple o
     "chat_rounds":[
         {
             "role": "system",
-            "content": "You are a expert in coding and help answer code questions",
-            "chat_round_id": 0
+            "content": "You are a expert in coding and help answer code questions"
         },
         {
             "role": "human",
-            "content": "Write a python function of quick sort", 
-            "chat_round_id": 1
+            "content": "Write a python function of quick sort"
         },
         {
             "role": "bot",
-            "content": "Below is the function of quick sort: ...", 
-            "chat_round_id": 1
+            "content": "Below is the function of quick sort: ..."
         },
         {
             "role": "human",
-            "content": "Explain the code", 
-            "chat_round_id": 2
+            "content": "Explain the code"
         },
         {
             "role": "bot",
-            "content": "OK, this code ...", 
-            "chat_round_id": 2
+            "content": "OK, this code ..."
         }
     ]
 }
 ```
 
 ### 2.2 Default Inference Data Format
-The default inference data contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
+Inference data format is the real string format consumed by tokenizers and then LLMs. It is also the string format to which the training data is converted before tokenization.
+The default inference data format contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
 It is used as the data "seen"(before tokenization) by the model in training process.
 It is used as input during the inference process as well.
-Here is an example format of the concatenated string:
+Here is an example format of the inference string:
 
-```python
+```
 """
 <s>system
 System instruction
@@ -225,7 +222,7 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 
 - **pretrained_model_path**: Local/Shared disk path or model name on HuggingFace for the pre-trained model.
 
-- **weighted_loss_mode**: Loss weighting method for multitask training. "case3" is recommended at present, "self-paced" is supported but need tuning of hyper-parameters.
+- **weighted_loss_mode**: Loss weighting method for multitask training. "case3" is recommended at present, "self-paced" is supported but need tuning of hyperparameters.
 
 - **padding_mode**: The way tokenized data is set. "padding" means padding for each sample to seq_length, "pack" means putting samples into seq_length as many as possible.
 
