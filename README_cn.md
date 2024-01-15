@@ -39,9 +39,9 @@
 
 
 ## 新闻
-🔥🔥 [2024/01/17] MFTCoder新版v0.3.0发布。新增对Mixtral(MoE), deepseek等模型的支持；新增支持FSDP(Fully Sharded Data Parallel)；新增Self-paced Loss, 支持多任务收敛均衡。 感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+🔥🔥 [2024/01/17] MFTCoder新版v0.3.0发布。新增对Mixtral(MoE), DeepSeek等模型的支持；新增支持FSDP(Fully Sharded Data Parallel)；新增Self-paced Loss, 支持多任务收敛均衡。 感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
 
-🔥🔥 [2024/01/17] 开源了[CodeFuse-Deepseek-33B](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B)模型，在HumanEval pass@1(greedy decoding)上可以达到78.7%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+🔥🔥 [2024/01/17] 开源了[CodeFuse-DeepSeek-33B](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)模型，在HumanEval pass@1(greedy decoding)上可以达到78.7%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
 
 🔥🔥 [2024/01/17] 开源了[CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)模型，在HumanEval pass@1(greedy decoding)上可以达到56.1%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
 
@@ -60,7 +60,7 @@
 ### HumanEval表现
 | 模型                               | HumanEval(Pass@1) |   日期    |
 |:---------------------------------|:-----------------:|:-------:|
-| **CodeFuse-Deepseek-33B**        |     **78.7%**     | 2024/01 |
+| **CodeFuse-DeepSeek-33B**        |     **78.7%**     | 2024/01 |
 | **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
 | **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
 | **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
@@ -104,7 +104,7 @@
 本项目主要内容如下：
 - 同时支持单任务SFT(Supervised FineTuning)和MFT(Multi-task FineTuning), 当前开源支持数据均衡，未来将持续开源难易均衡， 收敛均衡等
 - 支持QLoRA低成本高效指令微调、LoRA高效指令微调、全量参数高精度微调。
-- 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如Deepseek-coder, Mistral, Mistral(MoE), Chatglm3, Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
+- 支持绝大部分主流的开源大模型，重点关注代码能力优秀的开源大模型，如DeepSeek-coder, Mistral, Mistral(MoE), Chatglm3, Qwen, GPT-Neox, Starcoder, Codegeex2, Code-LLaMA等。
 - 支持lora与base model进行权重合并，推理更便捷。
 - 整理并开源2个指令微调数据集：[Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k)和[CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k)。
 - 开源多个[Codefuse系列指令微调模型权重]，具体参见我们的huggingface组织和modelscope组织下的模型：[codefuse-ai huggingface](https://huggingface.co/codefuse-ai) or [codefuse-ai 魔搭](https://modelscope.cn/organization/codefuse-ai)。
@@ -136,7 +136,7 @@ sh init_env.sh
 
 | 模型                                   |     HuggingFace links         |     ModelScope links         | 基座模型                 | 训练数据 | Batch Size | Seq Length |
 |--------------------------------------|------------------------|---|----------------------|------|------------|------------|
-| 🔥🔥🔥  CodeFuse-Deepseek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Deepseek-33B)          | Deepseek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-DeepSeek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)          | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
 | 🔥🔥🔥  CodeFuse-Mixtral-8x7B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)               | Mixtral-8x7B         | 60万  | 80         | 4096       |
 | 🔥🔥🔥  CodeFuse-CodeLlama-34B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)               | CodeLlama-34b-Python | 60万  | 80         | 4096       |
 | 🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)  |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)    | CodeLlama-34b-Python |   |          | 4096       |

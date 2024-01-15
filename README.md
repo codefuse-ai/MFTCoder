@@ -41,9 +41,9 @@
 
 
 ## News
-🔥🔥 [2024/01/17] We released MFTCoder v0.3.0, mainly for MFTCoder-accelerate. It now supports new models like Mixtral(MoE), Deepseek-coder, chatglm3. It supports FSDP as an option. It also supports Self-paced Loss as a solution for convergence balance in Multitask Fine-tuning.
+🔥🔥 [2024/01/17] We released MFTCoder v0.3.0, mainly for MFTCoder-accelerate. It now supports new models like Mixtral(MoE), DeepSeek-coder, chatglm3. It supports FSDP as an option. It also supports Self-paced Loss as a solution for convergence balance in Multitask Fine-tuning.
 
-🔥🔥 [2024/01/17] [CodeFuse-Deepseek-33B](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B) has been released, achieving a pass@1 (greedy decoding) score of 78.7% on HumanEval. It achieves top1 win-rate on Bigcode Leardboard.
+🔥🔥 [2024/01/17] [CodeFuse-DeepSeek-33B](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B) has been released, achieving a pass@1 (greedy decoding) score of 78.7% on HumanEval. It achieves top1 win-rate on Bigcode Leardboard.
 
 🔥🔥 [2024/01/17] [CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8X7B) has been released, achieving a pass@1 (greedy decoding) score of 56.1% on HumanEval.
 
@@ -62,7 +62,7 @@
 ### HumanEval Performance
 | Model                       | HumanEval(Pass@1) |  Date   | 
 |:----------------------------|:-----------------:|:-------:|
-| **CodeFuse-Deepseek-33B**        |     **78.7%**     | 2024/01 |
+| **CodeFuse-DeepSeek-33B**        |     **78.7%**     | 2024/01 |
 | **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
 | **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
 | **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
@@ -146,7 +146,7 @@ We are excited to release the following two CodeLLMs trained by MFTCoder, now av
 
 | Model                                 |                     |                                | Base Model         | Num of examples trained | Batch Size | Seq Length | 
 |--------------------------------------|------------------------|---|----------------------|------|------------|------------|
-| 🔥🔥  CodeFuse-Deepseek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Deepseek-33B)          | Deepseek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-DeepSeek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)          | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
 | 🔥🔥  CodeFuse-Mixtral-8x7B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)               | Mixtral-8x7B         | 60万  | 80         | 4096       |
 | 🔥🔥  CodeFuse-CodeLlama-34B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)               | CodeLlama-34b-Python | 60万  | 80         | 4096       |
 | 🔥🔥  CodeFuse-CodeLlama-34B-4bits |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)  |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)    | CodeLlama-34b-Python |   |          | 4096       |
