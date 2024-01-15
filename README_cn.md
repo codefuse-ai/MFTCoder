@@ -39,6 +39,11 @@
 
 
 ## 新闻
+🔥🔥 [2024/01/17] MFTCoder新版v0.3.0发布。新增对Mixtral(MoE), deepseek等模型的支持；新增支持FSDP(Fully Sharded Data Parallel)；新增Self-paced Loss, 支持多任务收敛均衡。 感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+
+🔥🔥 [2024/01/17] 开源了[CodeFuse-Deepseek-33B](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B)模型，在HumanEval pass@1(greedy decoding)上可以达到78.7%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+
+🔥🔥 [2024/01/17] 开源了[CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)模型，在HumanEval pass@1(greedy decoding)上可以达到56.1%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
 
 🔥🔥 [2023/11/07] [MFTCoder论文](https://arxiv.org/abs/2311.02303)在Arxiv公布，介绍了多任务微调的技术细节。
 
@@ -53,21 +58,23 @@
 🔥 [2023/08/26]MFTCoder支持使用LoRA/QLoRA对Code Llama、Llama、Llama2、StarCoder、ChatGLM2、CodeGeeX2、Qwen和GPT-NeoX模型进行微调。
 
 ### HumanEval表现
-| 模型                          | HumanEval(Pass@1) |   日期    |
-|:----------------------------|:-----------------:|:-------:|
-| **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
-|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
-| WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
-| GPT-4(zero-shot)            |       67.0%       | 2023/03  |
-| PanGu-Coder2 15B            |       61.6%       | 2023/08  |
-| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
-| CodeLlama-34b-Python        |       53.7%       | 2023/08  |
-| **CodeFuse-QWen-14B**  |     **48.8%**     | 2023/10  |
-| CodeLlama-34b               |       48.8%       | 2023/08  |
-| GPT-3.5(zero-shot)          |       48.1%       | 2022/11 |
-| OctoCoder                   |       46.2%       | 2023/08  |
-| StarCoder-15B               |       33.6%       | 2023/05  |
-| QWen-14B |     32.3%     | 2023/10  |
+| 模型                               | HumanEval(Pass@1) |   日期    |
+|:---------------------------------|:-----------------:|:-------:|
+| **CodeFuse-Deepseek-33B**        |     **78.7%**     | 2024/01 |
+| **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
+| **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
+| **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
+| WizardCoder-Python-34B-V1.0      |       73.2%       | 2023/08 |
+| GPT-4(zero-shot)                 |       67.0%       | 2023/03 |
+| PanGu-Coder2 15B                 |       61.6%       | 2023/08 |
+| **CodeFuse-StarCoder-15B**       |     **54.9%**     | 2023/08 |
+| CodeLlama-34b-Python             |       53.7%       | 2023/08 |
+| **CodeFuse-QWen-14B**            |     **48.8%**     | 2023/10 |
+| CodeLlama-34b                    |       48.8%       | 2023/08 |
+| GPT-3.5(zero-shot)               |       48.1%       | 2022/11 |
+| OctoCoder                        |       46.2%       | 2023/08 |
+| StarCoder-15B                    |       33.6%       | 2023/05 |
+| QWen-14B                         |       32.3%       | 2023/10 |
 
 
 ## 文章
@@ -82,7 +89,7 @@
 **Codefuse-MFTCoder** 是一个开源的多任务代码大语言模型项目，包含代码大模型的模型、数据、训练等。我们希望通过开源，分享交流大语言模型在代码领域的进步。
 
 ### 项目框架
-![img_1.png](./assets/img_1.png)
+![img_1.jpg](./assets/img_1.jpg)
 
 ### 项目优势
 :white_check_mark: **多任务**：一个模型同时支持多个任务，会保证多个任务之间的平衡，甚至可以泛化到新的没有见过的任务上去；
@@ -125,15 +132,18 @@ sh init_env.sh
 
 ## 模型
 
-使用本项目的训练代码，以及上述训练数据，我们训练并在huggingface开源了以下模型。
+使用本项目的训练代码，以及上述训练数据，我们训练并在huggingface, modelscope开源了以下模型。
 
-| 模型                                                            | 基座模型                 | 训练数据 | Batch Size | Seq Length |
-|---------------------------------------------------------------|----------------------|------|------------|------------|
-| [🔥🔥🔥  CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| [🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
-| [🔥🔥🔥  CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| [🔥🔥🔥 CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) | Qwen-14b | 110万                    | 256         | 4096       | 
-| [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)           | CodeFuse-13B-Base    | 6.6万 | 64         | 4096       |
+| 模型                                   |     HuggingFace links         |     ModelScope links         | 基座模型                 | 训练数据 | Batch Size | Seq Length |
+|--------------------------------------|------------------------|---|----------------------|------|------------|------------|
+| 🔥🔥🔥  CodeFuse-Deepseek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Deepseek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Deepseek-33B)          | Deepseek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-Mixtral-8x7B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)               | Mixtral-8x7B         | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-CodeLlama-34B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)               | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)  |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)    | CodeLlama-34b-Python |   |          | 4096       |
+| 🔥🔥🔥  CodeFuse-StarCoder-15B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)              | StarCoder-15B        | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-QWen-14B            |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)                       | Qwen-14b             | 110万                    | 256         | 4096       | 
+| 🔥🔥🔥  CodeFuse-CodeGeex2-6B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)                       | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
+
 
 
 

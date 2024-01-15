@@ -73,8 +73,8 @@ def get_task_mask(args, task_id):
     return task_mask
 
 
-def get_ltor_masks_and_position_ids(data):
-    """Build masks and position id for left to right model."""
+def get_attention_mask_and_position_ids(data):
+    """Build masks and position ids if you need to"""
 
     # Extract batch size and sequence length.
     batch_size, seq_length = data.size()
@@ -124,11 +124,11 @@ class DataCollatorForMFTDataset(object):
         result_batch['labels'] = input_ids[:, 1:max_pos].contiguous()
 
         # Get the masks and position ids.
-        if self.args.model_type == 'phi':
-            result_batch['attention_mask'], result_batch['position_ids'] = None, None
-        else:
-            result_batch['attention_mask'], result_batch['position_ids'] = get_ltor_masks_and_position_ids(
-                data=result_batch['input_ids'])
+        # For decoder-only models, attention_mask and position_ids should be None and transformers will create them.
+        result_batch['attention_mask'], result_batch['position_ids'] = None, None
+
+        # if you want to be compatible with non-gpt(non-causal)models, something you can do here
+        # result_batch['attention_mask'], result_batch['position_ids'] = get_attention_mask_and_position_ids(data=result_batch['input_ids'])
 
         if task_id is not None:
             task_id = torch.tensor(np.array(task_id))
