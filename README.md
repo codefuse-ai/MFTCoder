@@ -144,15 +144,15 @@ If you want to explore some new framework like atorch, you could check:
 We are excited to release the following two CodeLLMs trained by MFTCoder, now available on both HuggingFace and ModelScope:
 
 
-| Model                                 |                     |                                | Base Model         | Num of examples trained | Batch Size | Seq Length | 
-|--------------------------------------|------------------------|---|----------------------|------|------------|------------|
-| 🔥🔥  CodeFuse-DeepSeek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)          | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
-| 🔥🔥  CodeFuse-Mixtral-8x7B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)               | Mixtral-8x7B         | 60万  | 80         | 4096       |
-| 🔥🔥  CodeFuse-CodeLlama-34B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)               | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| 🔥🔥  CodeFuse-CodeLlama-34B-4bits |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)  |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)    | CodeLlama-34b-Python |   |          | 4096       |
-| 🔥🔥  CodeFuse-StarCoder-15B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)              | StarCoder-15B        | 60万  | 80         | 4096       |
-| 🔥🔥  CodeFuse-QWen-14B            |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)                       | Qwen-14b             | 110万                    | 256         | 4096       | 
-| 🔥🔥  CodeFuse-CodeGeex2-6B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)                       | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
+| Model                                 | HuggingFace Links                                                         | ModelScope Links                                                                | Base Model         | Num of examples trained | Batch Size | Seq Length | 
+|--------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------|----------------------|------|------------|------------|
+| 🔥🔥  CodeFuse-DeepSeek-33B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)        | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-Mixtral-8x7B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)        | Mixtral-8x7B         | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-CodeLlama-34B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)       | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-CodeLlama-34B-4bits | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
+| 🔥🔥  CodeFuse-StarCoder-15B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)       | StarCoder-15B        | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-QWen-14B            | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)            | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)            | Qwen-14b             | 110万                    | 256         | 4096       | 
+| 🔥🔥  CodeFuse-CodeGeex2-6B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)        | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
 
 
 ## Datasets

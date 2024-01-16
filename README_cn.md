@@ -134,15 +134,15 @@ sh init_env.sh
 
 使用本项目的训练代码，以及上述训练数据，我们训练并在huggingface, modelscope开源了以下模型。
 
-| 模型                                   |     HuggingFace links         |     ModelScope links         | 基座模型                 | 训练数据 | Batch Size | Seq Length |
-|--------------------------------------|------------------------|---|----------------------|------|------------|------------|
-| 🔥🔥🔥  CodeFuse-DeepSeek-33B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)          | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
-| 🔥🔥🔥  CodeFuse-Mixtral-8x7B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)         |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)               | Mixtral-8x7B         | 60万  | 80         | 4096       |
-| 🔥🔥🔥  CodeFuse-CodeLlama-34B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)               | CodeLlama-34b-Python | 60万  | 80         | 4096       |
-| 🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)  |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)    | CodeLlama-34b-Python |   |          | 4096       |
-| 🔥🔥🔥  CodeFuse-StarCoder-15B       |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)        |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)              | StarCoder-15B        | 60万  | 80         | 4096       |
-| 🔥🔥🔥  CodeFuse-QWen-14B            |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)                       | Qwen-14b             | 110万                    | 256         | 4096       | 
-| 🔥🔥🔥  CodeFuse-CodeGeex2-6B        |[h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)             |[m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)                       | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
+| 模型                                   | HuggingFace链接                                                             | 魔搭 链接                                                                           | 基座模型                 | 训练数据 | Batch Size | Seq Length |
+|--------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------|----------------------|------|------------|------------|
+| 🔥🔥🔥  CodeFuse-DeepSeek-33B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)        | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-Mixtral-8x7B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)        | Mixtral-8x7B         | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-CodeLlama-34B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)       | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-CodeLlama-34B-4bits | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
+| 🔥🔥🔥  CodeFuse-StarCoder-15B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)       | StarCoder-15B        | 60万  | 80         | 4096       |
+| 🔥🔥🔥  CodeFuse-QWen-14B            | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)            | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)            | Qwen-14b             | 110万                    | 256         | 4096       | 
+| 🔥🔥🔥  CodeFuse-CodeGeex2-6B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)        | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
 
 
 
