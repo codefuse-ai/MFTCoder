@@ -21,7 +21,11 @@
       <img alt="Open Issues" src="https://img.shields.io/github/issues-raw/codefuse-ai/MFTCoder" />
     </a>
 </p>
-
+<p>
+    🤗 <a href="https://huggingface.co/codefuse-ai" target="_blank">HuggingFace
+    </a>• 🤖<a href="https://modelscope.cn/organization/codefuse-ai" target="_blank"> ModelScope
+    </a>
+</p>
 
 [[中文]](README_cn.md) [**English**]
 
