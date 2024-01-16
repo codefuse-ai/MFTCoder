@@ -224,7 +224,7 @@ class UniformEncoder(Encoder):
                 sys_content_ids = self.pure_encode(system_marker + content_format(chat[0][CONTENT_COL]))
                 chat = chat[1:]
                 input_ids += sys_content_ids
-                loss_mask += [1] * len(sys_content_ids)
+                loss_mask += [0] * len(sys_content_ids)
 
             for i, r in enumerate(chat):
                 role = r[ROLE_COL]
