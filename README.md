@@ -1,4 +1,4 @@
-# MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning
+# MFTCoder: High Accuracy and Efficiency Multi-task Fine-Tuning Framework
 
 <p align="center">
   <img src="./assets/github-codefuse-logo-update.jpg" width="50%" />
@@ -21,7 +21,11 @@
       <img alt="Open Issues" src="https://img.shields.io/github/issues-raw/codefuse-ai/MFTCoder" />
     </a>
 </p>
-
+<p>
+    🤗 <a href="https://huggingface.co/codefuse-ai" target="_blank">HuggingFace
+    </a>• 🤖<a href="https://modelscope.cn/organization/codefuse-ai" target="_blank"> ModelScope
+    </a>
+</p>
 
 [[中文]](README_cn.md) [**English**]
 
@@ -41,6 +45,12 @@
 
 
 ## News
+🔥🔥 [2024/01/17] We released MFTCoder v0.3.0, mainly for MFTCoder-accelerate. It now supports new models like Mixtral(MoE), DeepSeek-coder, chatglm3. It supports FSDP as an option. It also supports Self-paced Loss as a solution for convergence balance in Multitask Fine-tuning.
+
+🔥🔥 [2024/01/17] [CodeFuse-DeepSeek-33B](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B) has been released, achieving a pass@1 (greedy decoding) score of 78.7% on HumanEval. It achieves top1 win-rate on Bigcode Leardboard.
+
+🔥🔥 [2024/01/17] [CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8X7B) has been released, achieving a pass@1 (greedy decoding) score of 56.1% on HumanEval.
+
 🔥🔥 [2023/11/07] [MFTCoder Paper](https://arxiv.org/abs/2311.02303) has been released on Arxiv, which discloses technique details of multi-task-fine-tuning.
 
 🔥🔥 [2023/10/20] [CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) has been released, achieving a pass@1 (greedy decoding) score of 48.8% on HumanEval, which gains 16% absolute improvement over the base model [Qwen-14b](https://huggingface.co/Qwen/Qwen-14B)
@@ -56,19 +66,21 @@
 ### HumanEval Performance
 | Model                       | HumanEval(Pass@1) |  Date   | 
 |:----------------------------|:-----------------:|:-------:|
-| **CodeFuse-CodeLlama-34B**  |     **74.4%**      | 2023/09  |
-|**CodeFuse-CodeLlama-34B-4bits** |     **73.8%**  |  2023/09 |
-| WizardCoder-Python-34B-V1.0 |       73.2%       | 2023/08  |
-| GPT-4(zero-shot)            |       67.0%       | 2023/03  |
-| PanGu-Coder2 15B            |       61.6%       | 2023/08  |
-| **CodeFuse-StarCoder-15B**  |     **54.9%**     | 2023/08  |
-| CodeLlama-34b-Python        |       53.7%       | 2023/08  |
-| **CodeFuse-QWen-14B**  |     **48.8%**     | 2023/10  |
-| CodeLlama-34b               |       48.8%       | 2023/08  |
-| GPT-3.5(zero-shot)          |       48.1%       | 2022/11 |
-| OctoCoder                   |       46.2%       | 2023/08  |
-| StarCoder-15B               |       33.6%       | 2023/05  |
-| QWen-14B |     32.3%     | 2023/10  |
+| **CodeFuse-DeepSeek-33B**        |     **78.7%**     | 2024/01 |
+| **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
+| **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
+| **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
+| WizardCoder-Python-34B-V1.0      |       73.2%       | 2023/08 |
+| GPT-4(zero-shot)                 |       67.0%       | 2023/03 |
+| PanGu-Coder2 15B                 |       61.6%       | 2023/08 |
+| **CodeFuse-StarCoder-15B**       |     **54.9%**     | 2023/08 |
+| CodeLlama-34b-Python             |       53.7%       | 2023/08 |
+| **CodeFuse-QWen-14B**            |     **48.8%**     | 2023/10 |
+| CodeLlama-34b                    |       48.8%       | 2023/08 |
+| GPT-3.5(zero-shot)               |       48.1%       | 2022/11 |
+| OctoCoder                        |       46.2%       | 2023/08 |
+| StarCoder-15B                    |       33.6%       | 2023/05 |
+| QWen-14B                         |       32.3%       | 2023/10 |
 
 
 ## Articles
@@ -76,34 +88,36 @@
 
 ## Introduction
 
-**High Accuracy and efficiency multi-task fine-tuning framework for Code LLMs.**
+**High Accuracy and efficiency Multi-task Fine-tuning framework for Code LLMs.**
 
-**CodeFuse-MFTCoder** is an open-source project of CodeFuse for multitasking Code-LLMs(large language model for code tasks), which includes models, datasets, training codebases and inference guides.
+**CodeFuse-MFTCoder** is an open-source project of CodeFuse for accurate and efficient Multi-task Fine-tuning(MFT) on Large Language Models(LLMs), especially on Code-LLMs(large language model for code tasks).
+Moreover, we open source Code LLM models and code-related datasets along with the MFTCoder framework.
+
 In MFTCoder, we released two codebases for finetuning Large Language Models: 
-- ```mft_peft_hf``` is based on the HuggingFace Accelerate and deepspeed framework.
-- ```mft_atorch``` is based on the [ATorch frameworks](https://github.com/intelligent-machine-learning/dlrover), which is a fast distributed training framework of LLM.
+- ```MFTCoder-accelerate``` is a framework with accelerate and DeepSpeed/FSDP. All tech-stacks are open-source and vibrant. We highly recommend you try this framework and make your fintuning accurate and efficient.
+- ```MFTCoder-atorch``` is based on the [ATorch frameworks](https://github.com/intelligent-machine-learning/dlrover), which is a fast distributed training framework of LLM.
 
 The aim of this project is to foster collaboration and share advancements in large language models, particularly within the domain of code development.
 
 ### Frameworks
-![img.png](./assets/img.png)
+![img.jpg](./assets/img.jpg)
 
 ### Highlights
 :white_check_mark: **Multi-task**: Train models on multiple tasks while maintaining a balance between them. The models can even generalize to new, previously unseen tasks.
 
 :white_check_mark: **Multi-model**: It integrates state-of-the-art open-source models such as gpt-neox, llama, llama-2, baichuan, Qwen, chatglm2, and more. (These finetuned models will be released in the near future.)
 
-:white_check_mark: **Multi-framework**: It provides support for both HuggingFace Accelerate (with deepspeed) and [ATorch](https://github.com/intelligent-machine-learning/dlrover).
+:white_check_mark: **Multi-framework**: It provides support for both Accelerate (with Deepspeed and FSDP) and ATorch
 
-:white_check_mark: **Efficient fine-tuning**: It supports LoRA and QLoRA, enabling fine-tuning of large models with minimal resources. The training speed meets the demands of almost all fine-tuning scenarios.
+:white_check_mark: **Efficient fine-tuning**: It supports LoRA, QLoRA as well as Full-parameters training, enabling fine-tuning of large models with minimal resources. The training speed meets the demands of almost all fine-tuning scenarios.
 
 The main components of this project include:
 - Support for both SFT (Supervised FineTuning) and MFT (Multi-task FineTuning). The current MFTCoder achieves data balance among multiple tasks, and future releases will achieve a balance between task difficulty and convergence speed during training.
-- Support for QLoRA instruction fine-tuning, as well as LoRA fine-tuning.
-- Support for most mainstream open-source large models, particularly those relevant to Code-LLMs, such as Code-LLaMA, Starcoder, Codegeex2, Qwen, GPT-Neox, and more.
+- Support for QLoRA instruction fine-tuning, LoRA fine-tuning as well as Full-parameters fine-tuning.
+- Support for most mainstream open-source large models, particularly those relevant to Code-LLMs, such as DeepSeek-coder, Mistral, Mixtral, Chatglm3, Code-LLaMA, Starcoder, Codegeex2, Qwen, GPT-Neox, and more.
 - Support for weight merging between the LoRA adaptor and base models, simplifying the inference process.
 - Release of 2 high-quality code-related instruction fine-tuning datasets: [Evol-instruction-66k](https://huggingface.co/datasets/codefuse-ai/Evol-instruction-66k) and [CodeExercise-Python-27k](https://huggingface.co/datasets/codefuse-ai/CodeExercise-Python-27k).
-- Release of 2 models: [CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B) and [CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B).
+- Release of many Code LLMs, please refer to organizations: [codefuse-ai on huggingface](https://huggingface.co/codefuse-ai) or [codefuse-ai on modelscope](https://modelscope.cn/organization/codefuse-ai).
 
 
 ## Requirements
@@ -113,28 +127,36 @@ Next, we have provided an init_env.sh script to simplify the installation of req
 ```bash
 sh init_env.sh
 ```
-If you require flash attention, please refer to the following link for installation instructions: https://github.com/Dao-AILab/flash-attention
+We highly recommend training with flash attention(version >= 2.1.0, preferably 2.3.6), please refer to the following link for installation instructions: https://github.com/Dao-AILab/flash-attention
 
 
 ## Training
-🚀 [Huggingface accelerate + deepspeed Codebase for MFT(Multi-task Finetuning)](./mft_peft_hf/README.md)
+As mentioned above, we open source two training frameworks. You could refer to their own READMEs for more details as followed. 
 
-🚀 [Atorch Codebase for MFT(Multi-task Finetuning)](./mft_atorch/README.md)
+If you are familiar with open source ```transformers```, ```DeepSpeed``` or ```FSDP```, we highly recommend you try:
+
+🚀🚀 [MFTCoder-accelerate: Accelerate + Deepspeed/FSDP Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
+
+
+If you want to explore some new framework like atorch, you could check:
+
+🚀 [MFTCoder-atorch: Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## Models
 
-We are excited to release the following two CodeLLMs trained by MFTCoder, now available on Hugging Face:
+We are excited to release the following two CodeLLMs trained by MFTCoder, now available on both HuggingFace and ModelScope:
 
 
-| Model                                                                                      | Base Model         | Num of examples trained | Batch Size | Seq Length | 
-|--------------------------------------------------------------------------------------------|--------------------|-------------------------|------------|------------|
-| [🔥🔥🔥 CodeFuse-CodeLlama-34B](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B) | CodeLlama-34b-Python | 600k                    | 80         | 4096       | 
-| [🔥🔥🔥 CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) |    CodeLlama-34b-Python|           |           | 4096       |
-| [🔥🔥🔥 CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B) | Starcoder | 600k                    | 256         | 4096       | 
-| [🔥🔥🔥 CodeFuse-QWen-14B](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B) | Qwen-14b | 1100k                    | 256         | 4096       | 
-| [🔥 CodeFuse-13B](https://huggingface.co/codefuse-ai/CodeFuse-13B)                         | CodeFuse-13B       | 66k                     | 64         | 4096       |
-
+| Model                                 | HuggingFace Links                                                         | ModelScope Links                                                                | Base Model         | Num of examples trained | Batch Size | Seq Length | 
+|--------------------------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------|----------------------|------|------------|------------|
+| 🔥🔥  CodeFuse-DeepSeek-33B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-DeepSeek-33B)        | DeepSeek-coder-33B   | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-Mixtral-8x7B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-Mixtral-8x7B)        | Mixtral-8x7B         | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-CodeLlama-34B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B)       | CodeLlama-34b-Python | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-CodeLlama-34B-4bits | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeLlama-34B-4bits) | CodeLlama-34b-Python |   |          | 4096       |
+| 🔥🔥  CodeFuse-StarCoder-15B       | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)       | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-StarCoder-15B)       | StarCoder-15B        | 60万  | 80         | 4096       |
+| 🔥🔥  CodeFuse-QWen-14B            | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-QWen-14B)            | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-QWen-14B)            | Qwen-14b             | 110万                    | 256         | 4096       | 
+| 🔥🔥  CodeFuse-CodeGeex2-6B        | [h-link](https://huggingface.co/codefuse-ai/CodeFuse-CodeGeex2-6B)        | [m-link](https://modelscope.cn/models/codefuse-ai/CodeFuse-CodeGeex2-6B)        | CodeGeex2-6B         | 110万                    | 256         | 4096       | 
 
 
 ## Datasets
