@@ -44,11 +44,11 @@
 
 
 ## 新闻
-🔥🔥 [2024/01/17] MFTCoder新版v0.3.0发布。新增对Mixtral(MoE), DeepSeek等模型的支持；新增支持FSDP(Fully Sharded Data Parallel)；新增Self-paced Loss, 支持多任务收敛均衡。 感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+🔥🔥🔥 [2024/01/17] **MFTCoder-v0.3.0**发布。新增对Mixtral(MoE), DeepSeek等模型的支持；新增支持FSDP(Fully Sharded Data Parallel)；新增Self-paced Loss, 支持多任务收敛均衡。 感兴趣详见微信公众号CodeFuse的文章[MFTCoder 重磅升级v0.3.0发布](https://mp.weixin.qq.com/s/xI3f0iUKq9TIIKZ_kMtcQg)
 
-🔥🔥 [2024/01/17] 开源了[CodeFuse-DeepSeek-33B](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)模型，在HumanEval pass@1(greedy decoding)上可以达到78.7%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+🔥🔥🔥 [2024/01/17] 开源了[CodeFuse-DeepSeek-33B](https://huggingface.co/codefuse-ai/CodeFuse-DeepSeek-33B)模型，在HumanEval pass@1(greedy decoding)上可以达到78.7%。该模型在Big Code榜单的结果近期发布，请关注公众号获取最新信息。
 
-🔥🔥 [2024/01/17] 开源了[CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)模型，在HumanEval pass@1(greedy decoding)上可以达到56.1%。感兴趣详见微信公众号CodeFuse[文章](https://mp.weixin.qq.com/s/PCQPkvbvfxSPzsqjOILCDw)
+🔥🔥🔥 [2024/01/17] 开源了[CodeFuse-Mixtral-8x7B](https://huggingface.co/codefuse-ai/CodeFuse-Mixtral-8x7B)模型，在HumanEval pass@1(greedy decoding)上可以达到56.1%。感兴趣详见微信公众号CodeFuse的文章[MFTCoder提升Mixtral-8x7B混合专家模型的代码能力实践](https://mp.weixin.qq.com/s/xI3f0iUKq9TIIKZ_kMtcQg)
 
 🔥🔥 [2023/11/07] [MFTCoder论文](https://arxiv.org/abs/2311.02303)在Arxiv公布，介绍了多任务微调的技术细节。
 
@@ -56,22 +56,22 @@
 
 🔥🔥 [2023/09/27] 开源了[CodeFuse-StarCoder-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder-15B)模型，在HumanEval pass@1(greedy decoding)上可以达到54.9%。
 
-🔥🔥🔥 [2023/09/26] [CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)量化版本发布，量化后模型在HumanEval pass@1指标为73.8% (贪婪解码)。
+🔥🔥 [2023/09/26] [CodeFuse-CodeLlama-34B-4bits](https://huggingface.co/codefuse-ai/CodeFuse-CodeLlama-34B-4bits)量化版本发布，量化后模型在HumanEval pass@1指标为73.8% (贪婪解码)。
 
-🔥🔥🔥 [2023/09/07]MFTCoder微调的模型**CodeFuse-CodeLlama-34B**在[HumanEval Benchmarks](https://github.com/openai/human-eval)的Python **Pass@1** 取得了**74.4%**（greedy decoding）的开源SOTA成绩。
+🔥🔥 [2023/09/07]MFTCoder微调的模型**CodeFuse-CodeLlama-34B**在[HumanEval Benchmarks](https://github.com/openai/human-eval)的Python **Pass@1** 取得了**74.4%**（greedy decoding）的开源SOTA成绩。
 
-🔥 [2023/08/26]MFTCoder支持使用LoRA/QLoRA对Code Llama、Llama、Llama2、StarCoder、ChatGLM2、CodeGeeX2、Qwen和GPT-NeoX模型进行微调。
+🔥🔥 [2023/08/26]MFTCoder-v0.1.0 支持使用LoRA/QLoRA对Code Llama、Llama、Llama2、StarCoder、ChatGLM2、CodeGeeX2、Qwen和GPT-NeoX模型进行微调。
 
 ### HumanEval表现
 | 模型                               | HumanEval(Pass@1) |   日期    |
 |:---------------------------------|:-----------------:|:-------:|
 | **CodeFuse-DeepSeek-33B**        |     **78.7%**     | 2024/01 |
-| **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
 | **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
 | **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
 | WizardCoder-Python-34B-V1.0      |       73.2%       | 2023/08 |
 | GPT-4(zero-shot)                 |       67.0%       | 2023/03 |
 | PanGu-Coder2 15B                 |       61.6%       | 2023/08 |
+| **CodeFuse-Mixtral-8x7B**        |     **56.1%**     | 2024/01 |
 | **CodeFuse-StarCoder-15B**       |     **54.9%**     | 2023/08 |
 | CodeLlama-34b-Python             |       53.7%       | 2023/08 |
 | **CodeFuse-QWen-14B**            |     **48.8%**     | 2023/10 |
