@@ -3,8 +3,8 @@
 # @date 2023/12/11
 # @module mft_accelerate.py
 
-Accelerate + DeepSpeed + Data Parallelism
-QLoRA/LoRA/Full + MFT/MPT, resource and parameters efficient training
+Accelerate + DeepSpeed/FSDP
+QLoRA/LoRA/Full + MFT/MPT, accurate and efficient training
 
 Entry
 """
