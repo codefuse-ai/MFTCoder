@@ -42,15 +42,15 @@ MFTCoder_template = (
     "{% set content = '' %}"
     "{% endif %}"
     "{% if message['role'] == 'user' or message['role'] == 'human' %}"
-    "{{ content + '<s>user\n' + message['content'] + '\n' }}"
+    "{{ content + '<s>human\n' + message['content'] + '\n' }}"
     "{% elif message['role'] == 'assistant' or message['role'] == 'bot' %}"
-    "{{ '<s>assistant\n' + message['content'] + '\n' +  eos_token + '\n'}}"
+    "{{ '<s>bot\n' + message['content'] + '\n' +  eos_token + '\n'}}"
     "{% else %}"
     "{{ raise_exception('Only user/human and assistant/bot roles are supported!') }}"
     "{% endif %}"
     "{% endfor %}"
     "{% if add_generation_prompt %}"
-    "{{ '<s>assistant\n' }}"
+    "{{ '<s>bot\n' }}"
     "{% endif %}"
 )
 
