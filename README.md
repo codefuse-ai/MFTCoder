@@ -176,6 +176,8 @@ We are also pleased to release two code-related instruction datasets, meticulous
 Contributions are welcome! If you have any suggestions, ideas, bug reports, or new model/feature supported, please open an issue or submit a pull request.
 
 ## Citation
+This work has been accepted by KDD 2024 - Applied Data Science (ADS) Track. 
+
 If you find our work useful or helpful for your R&D works, please feel free to cite our paper as below.
 ```
 @article{mftcoder2023,
