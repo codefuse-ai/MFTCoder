@@ -7,6 +7,10 @@
 [**中文**] [[English]](README.md)
 
 ## 1. 更新
+🔥 MFTCoder-accelerate 最新支持的训练模式包括: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, 全量 + DeepSpeed ZeRO3, QLoRA + FSDP, 全量 + FSDP。
+
+🔥 MFTCoder-accelerate 新增支持QLoRA + DeepSpeed ZeRO3， 支持QLoRA + FSDP, 可以训练更大的模型;
+
 🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA;
 
 🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3；
@@ -256,7 +260,7 @@ print(gen_text)
 ## 5. FAQ
 #### 问题1：OOM如何解决？
 如果发生OOM，可以缩小per_device_train_batch_size、seq_length等参数来缓解。由于面对的模型普遍较大（6b， 13b， 34b， 70b等）我们已经默认使用gradient_checkpointing技术，可以大幅降低显存占用，但训练速度会稍慢一些。
-
+如果是模型太大，可以使用QLoRA + DeepSpeed ZeRO3(配置 zero stage = 3)，这个方案可以在卡数足够的情况下，微调更大的模型。
 #### 问题2：安装包错误
 参考init_env.sh和requirements.txt
 
@@ -276,14 +280,14 @@ CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file pefts/accelerate_ds_con
 如果你可以自行安装环境并使用torch>=2.1.1，可以尝试设置参数"attn_implementation"为 "sdpa"。这样会尝试使用transformers兼容的torch.nn.functional.scaled_dot_product_attention。支持的模型还不全面。
 
 #### 问题5：推荐的分布式框架是怎样的？
-对于LoRA/QLoRA, 我们推荐使用DeepSpeed作为底层分布式框架，它具有易用性和兼容性好的特点，并且速度很快。
-FSDP 不支持QLoRA, 因为bitsandbytes暂不支持FSDP。
+对于LoRA, 我们推荐使用DeepSpeed Zero2作为底层分布式框架，它具有易用性和兼容性好的特点，并且速度很快, 模型加载模式上类似DDP。
+对于QLoRA, DeepSpeed Zero2 适合中小模型, DeepSpeed Zero3 适合很大的模型。
 
-对于全量微调，我们推荐使用FSDP， 因为它在全量训练时可以发挥fully sharding的优势，达到更快的训练速度。
+对于全量微调，可以使用DeepSpeed Zero3, 或者FSDP。二者都是Fully Sharding模式，即模型加载平分在每张卡。
 
 #### 问题6：当前支持的模型中，有什么区别
 国产大模型比如chatglm2， chatglm3， baichuan2， qwen， aquila2等，使用的是和模型共同发布的modeling_xxx.py. 
-其它被transformers官方支持的大模型，由于已经升级支持flash attention等，所以全面切换到官方的modeling支持训练，之前的自定义modeling会被deprecated
+其它被transformers官方支持的大模型，比如llama, qwen2, starcoder2, mistral等，全面切换到官方的modeling支持训练，之前的自定义modeling会被deprecated。
 
 
 

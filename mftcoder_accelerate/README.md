@@ -7,8 +7,9 @@
 [[中文]](README_cn.md) [**English**]
 
 ## 1. Updates
+🔥 MFTCoder-accelerate now support these modes: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, Full-parameter + DeepSpeed ZeRO3, QLoRA + FSDP, Full-parameter + FSDP.
 
-🔥 MFTCoder-accelerate supports Full-parameters/LoRA using accelerate + FSDP Framework;
+🔥 MFTCoder-accelerate supports QLoRA + DeepSpeed ZeRO3 and QLoRA + FSDP, which both work for larger models;
 
 🔥 MFTCoder-accelerate supports MFT/SFT on more new mainstream open-source base models: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3;
 
@@ -328,6 +329,8 @@ beam_num: Set a smaller value such as 1 or 3. ```beam_num=1``` represents greedy
 If OOM happened，you can reduce parameters such as per_device_train_batch_size and seq_length. Since you are dealing with large models (6B, 13B, 34B, 70B, etc.), you are already using gradient checkpointing technology by default, which significantly reduces GPU memory consumption. 
 However, this may slightly slow down the training speed.
 
+QLoRA + DeepSpeed Zero3 is recommended for larger models to avoid OOM.
+
 #### Q2：install packages
 Please refer to init_env.sh and requirements.txt
 We highly recommend you install Flash Attention 2 (flash_attn>=2.1.0, 2.3.6 used by us) first to get memory-efficient and fast training.
@@ -339,7 +342,8 @@ CUDA_VISIBLE_DEVICES=0,1 accelerate launch --config_file accelerate_ds_config.ya
 ```
 
 #### Q4：Whats is a recommended Distributed Training?
-For LoRA/QLoRA, we recommend DeepSpeed(ZeRO2) as the underlying framework, because it is easy and stable to use, moreover it is more compatable for different settings.
-And FSDP does not support Quantization(integer type in training).
+For LoRA, we recommend DeepSpeed ZeRO2 as the underlying framework, because it is easy and stable to use, moreover it is more compatable for different settings.
 
-For Full-parameter finetuning, FSDP is usually faster, and may help you with very large models by sharding parameters and gradients.
+For QLoRA, DeepSpeed ZeRO2 and DeepSpeed ZeRO3 are both good, moreover DeepSpeed ZeRO3 is a good choice for very large models.
+
+For Full-parameter finetuning, DeepSpeed ZeRO3 and FSDP are faster, and may help you with very large models by sharding parameters and gradients.
