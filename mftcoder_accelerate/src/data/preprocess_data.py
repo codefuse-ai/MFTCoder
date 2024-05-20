@@ -8,33 +8,32 @@ import os
 import sys
 import ftfy
 import glob
-print("In preprocess_data.py, sys path:", sys.path)
+
+# print("In preprocess_data.py, sys path:", sys.path)
 
 from tokenizer import build_tokenizer
 
-CHAT_COL = 'chat_rounds'
-ROLE_COL = 'role'
-CONTENT_COL = 'content'
+CHAT_COL = "chat_rounds"
+ROLE_COL = "role"
+CONTENT_COL = "content"
 
-SYSTEM_COL = 'system'
-PROMPT_COL = 'prompt'
-ANSWER_COL = 'answer'
+SYSTEM_COL = "system"
+PROMPT_COL = "prompt"
+ANSWER_COL = "answer"
 
-TEXT_COL = 'text'
+TEXT_COL = "text"
 
-table = {ord(f): ord(t) for f, t in zip(
-    u'，。！？：【】（）％＃＠＆１２３４５６７８９０',
-    u',.!?:[]()%#@&1234567890')}
+table = {ord(f): ord(t) for f, t in zip("，。！？：【】（）％＃＠＆１２３４５６７８９０", ",.!?:[]()%#@&1234567890")}
 
 
 def content_format(content: str):
     # Replace non-breaking space with space
-    content = content.replace('\u202f', ' ').replace('\xa0', ' ')
+    content = content.replace("\u202f", " ").replace("\xa0", " ")
 
     # change chinese punctuation to english ones
     # text = text.translate(table)
 
-    content += '\n'
+    content += "\n"
 
     return content
 
@@ -112,7 +111,7 @@ class Encoder(object):
         # Use Encoder class as a container for global data
         Encoder.tokenizer = build_tokenizer(self.args)
         # self.tokenizer = build_tokenizer(self.args)
-    
+
     def pure_encode(self, content):
         return Encoder.tokenizer.encode(content, add_special_tokens=False)
 
@@ -132,8 +131,7 @@ class Encoder(object):
 
 
 class UniformEncoder(Encoder):
-
-    def __init__(self, args, mode='sft'):
+    def __init__(self, args, mode="sft"):
         super().__init__(args)
         self.verbose = False
         self.mode = mode
@@ -149,47 +147,45 @@ class UniformEncoder(Encoder):
 
     def encode(self, data, verbose=False):
         self.verbose = verbose
-        encode_res = {
-            "input_ids": [],
-            "loss_mask": []
-        }
+        encode_res = {"input_ids": [], "loss_mask": []}
 
         if is_prompt_answer_format(data):
-            data_type = 'prompt_answer'
+            data_type = "prompt_answer"
         elif is_prompt_response_format(data):
-            data_type = 'prompt_response'
+            data_type = "prompt_response"
         elif is_input_output_format(data):
-            data_type = 'input_output'
+            data_type = "input_output"
         elif is_instruction_output_format(data):
-            data_type = 'instruction_output'
+            data_type = "instruction_output"
         elif is_instruction_response_format(data):
-            data_type = 'instruction_response'
+            data_type = "instruction_response"
         elif is_question_response_format(data):
-            data_type = 'question_response'
+            data_type = "question_response"
         elif is_question_answer_format(data):
-            data_type = 'question_answer'
+            data_type = "question_answer"
         elif is_chatml_format(data):
-            data_type = 'chatML'
+            data_type = "chatML"
         elif is_text_format(data):
-            data_type = 'text'
+            data_type = "text"
         else:
             raise ValueError(
                 f"data_type does not support"
                 f"please use chatML or prompt/answer, prompt/response, question/response, "
-                f"instruction/output, input/output, instruction/output or text(only for pretrain)")
-        
+                f"instruction/output, input/output, instruction/output or text(only for pretrain)"
+            )
+
         length = 0
-        if data_type == 'chatML':
-            for chat in data['chat_rounds']:
-                length += len(chat['content'])
-        elif data_type == 'text':
-            length += len(data['text'])
+        if data_type == "chatML":
+            for chat in data["chat_rounds"]:
+                length += len(chat["content"])
+        elif data_type == "text":
+            length += len(data["text"])
         else:
-            # update key 
+            # update key
             global PROMPT_COL, ANSWER_COL
-            PROMPT_COL, ANSWER_COL = tuple(data_type.split('_'))
+            PROMPT_COL, ANSWER_COL = tuple(data_type.split("_"))
             length = len(data[PROMPT_COL]) + len(data[ANSWER_COL])
-        
+
         for token_res in self._tokenize_fields(data, data_type=data_type):
             for k, v in token_res.items():
                 encode_res[k].append(v)
@@ -197,19 +193,19 @@ class UniformEncoder(Encoder):
         return encode_res, length
 
     def _tokenize_fields(self, data, data_type):
-        if self.mode == 'sft':
+        if self.mode == "sft":
             if self.args.role_markers:
                 system_marker = self.args.role_markers["system"]
                 user_marker = self.args.role_markers["user"]
                 assistant_marker = self.args.role_markers["assistant"]
             else:
-                system_marker = '<s>system\n'
-                user_marker = '<s>human\n'
-                assistant_marker = '<s>bot\n'
-        elif self.mode == 'pretrain':
-            system_marker = ''
-            user_marker = ''
-            assistant_marker = ''
+                system_marker = "<s>system\n"
+                user_marker = "<s>human\n"
+                assistant_marker = "<s>bot\n"
+        elif self.mode == "pretrain":
+            system_marker = ""
+            user_marker = ""
+            assistant_marker = ""
         else:
             raise ValueError(f"tokenize_mode does not support {self.mode}, please use sft or pretrain")
 
@@ -218,9 +214,9 @@ class UniformEncoder(Encoder):
         input_ids = []
         loss_mask = []
 
-        if data_type == 'chatML':
+        if data_type == "chatML":
             chat = data[CHAT_COL]
-            if chat[0][ROLE_COL] == 'system':
+            if chat[0][ROLE_COL] == "system":
                 sys_content_ids = self.pure_encode(system_marker + content_format(chat[0][CONTENT_COL]))
                 chat = chat[1:]
                 input_ids += sys_content_ids
@@ -230,15 +226,17 @@ class UniformEncoder(Encoder):
                 role = r[ROLE_COL]
                 content = r[CONTENT_COL]
                 content = content_format(content)
-                if (role == 'human' or role == 'user') != (i % 2 == 0):
-                    raise ValueError("Conversation roles must alternate user/assistant/user/assistant/... or human/bot/human/bot/...')")
-                
+                if (role == "human" or role == "user") != (i % 2 == 0):
+                    raise ValueError(
+                        "Conversation roles must alternate user/assistant/user/assistant/... or human/bot/human/bot/...')"
+                    )
+
                 # compute loss only for assistant's content and eos token afterward
-                if role == 'human' or role == 'user':
+                if role == "human" or role == "user":
                     content_ids = self.pure_encode(user_marker + content + assistant_marker)
                     input_ids += content_ids
                     loss_mask += [0] * len(content_ids)
-                elif role == 'bot' or role == 'assistant':
+                elif role == "bot" or role == "assistant":
                     content_ids = self.pure_encode(content) + sft_end_marker_ids
                     input_ids += content_ids
                     loss_mask += [1] * len(content_ids)
@@ -255,7 +253,7 @@ class UniformEncoder(Encoder):
             input_ids += text_ids
             loss_mask += [1] * len(text_ids)
         else:
-            system = data.get(SYSTEM_COL, '')
+            system = data.get(SYSTEM_COL, "")
             prompt = data[PROMPT_COL]
             answer = data[ANSWER_COL]
 
@@ -270,28 +268,28 @@ class UniformEncoder(Encoder):
             loss_mask += [0] * len(prompt_ids) + [1] * len(answer_ids)
 
         # print(self.mode)
-        if self.mode == 'pretrain':
+        if self.mode == "pretrain":
             # change loss mask to all 1s
             input_ids = input_ids
             loss_mask = [1] * len(loss_mask)
-        elif self.mode == 'sft':
+        elif self.mode == "sft":
             # do nothing
             input_ids = input_ids
             loss_mask = loss_mask
-        
+
         if self.verbose:
             print(f"original data:\n{data}")
             print(f"decoding back:\n{Encoder.tokenizer.decode(input_ids)}")
 
         assert len(input_ids) == len(loss_mask)
-        if self.args.padding_mode == 'padding':
+        if self.args.padding_mode == "padding":
             if len(input_ids) <= self.seq_length:
                 yield self.padding(input_ids, loss_mask)
 
             # drop if too long
             else:
                 yield {}
-        elif self.args.padding_mode == 'concat':
+        elif self.args.padding_mode == "concat":
             input_ids = self.remain_input_ids + input_ids
             loss_mask = self.remain_loss_mask + loss_mask
             if len(input_ids) < self.seq_length:
@@ -303,15 +301,15 @@ class UniformEncoder(Encoder):
                 cursor = 0
                 while cursor + self.seq_length <= len(input_ids):
                     yield {
-                        "input_ids": input_ids[cursor: cursor + self.seq_length],
-                        "loss_mask": loss_mask[cursor: cursor + self.seq_length]
+                        "input_ids": input_ids[cursor : cursor + self.seq_length],
+                        "loss_mask": loss_mask[cursor : cursor + self.seq_length],
                     }
                     cursor = cursor + self.stride
                 self.remain_input_ids = input_ids[cursor:]
                 self.remain_loss_mask = loss_mask[cursor:]
                 assert len(self.remain_input_ids) == len(self.remain_loss_mask)
                 yield {}
-        elif self.args.padding_mode == 'pack':
+        elif self.args.padding_mode == "pack":
             if len(input_ids) > self.seq_length:
                 yield {}
             elif len(self.remain_input_ids) + len(input_ids) > self.seq_length:
@@ -330,10 +328,7 @@ class UniformEncoder(Encoder):
         assert len(input_ids) <= self.seq_length, f"padding sequence: {len(input_ids)} > {self.seq_length}"
         input_ids += [pad_id] * (self.seq_length - len(input_ids))
         loss_mask += [0] * (self.seq_length - len(loss_mask))
-        return {
-            "input_ids": input_ids,
-            "loss_mask": loss_mask
-        }
+        return {"input_ids": input_ids, "loss_mask": loss_mask}
 
 
 def find_jsonl_fnames(inputs):

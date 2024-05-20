@@ -51,10 +51,10 @@ class TrainArgs:
     weighted_loss_mode: str = "case3"
 
     # lora or qlora or None(for full-parameter training)
-    peft_type: str = "qlora"
+    peft_type: Union[None, str] = "qlora"
 
-    # if qlora, 4bit or 8bit, 4bit is suggested
-    quantization: str = "4bit"
+    # if qlora, 4bit will be set, else None
+    quantization: Union[None, str] = "4bit"
 
     # lora rank, the bigger, the more trainalbe parameters
     lora_rank: int = 96
@@ -66,7 +66,7 @@ class TrainArgs:
     lora_dropout: float = 0.05
 
     # lora targeting modules
-    target_modules: Union[None, List[str]] = None
+    target_modules: Union[None, str, List[str]] = None
 
     # mircro train batch size
     per_device_train_batch_size: int = 8
@@ -84,7 +84,7 @@ class TrainArgs:
     min_lr: float = 5e-6
 
     # weight decay
-    weight_decay: float = 0.1
+    weight_decay: float = 0.01
 
     # gradient_accumulation_steps
     gradient_accumulation_steps: int = 1
@@ -107,6 +107,9 @@ class TrainArgs:
     # path of adaptor which is resumed from, None for not resuming training
     resume_from_checkpoint: Union[None, str] = None
 
+    # auto resume from latest ckpt if job restarted
+    auto_resume: bool = True
+
     # num of steps for logging training loss
     log_interval: int = 10
 
@@ -128,14 +131,14 @@ class TrainArgs:
     # DDP random sampler
     use_random_sampler: bool = True
 
-    # if early stop when eval loss is not converging in the past early_stopping_stall_num evaluation point 
+    # if early stop when eval loss is not converging in the past early_stopping_stall_num evaluation point
     early_stopping: bool = True
     early_stopping_stall_num: int = 5
 
     # limit num for saving ckpts, None for no limits. Used for full-parameter training to avoid exceeding disk quota.
     saving_limit: Union[None, int] = None
 
-    # if dynamic padding 
+    # if dynamic padding
     use_dynamic_padding: bool = True
 
     # interval of update per task train weight in selfpaced
@@ -154,7 +157,7 @@ class TrainArgs:
     # role_markers: {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
     role_markers: Union[None, dict] = None
 
-    distributed_type: Union[None, str] = "deepspeed"
+    distributed_type: Union[None, str] = None
     # legacy, leave them
     use_xformers: bool = True
     trust_remote_code: bool = True
