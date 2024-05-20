@@ -418,7 +418,7 @@ def main():
             bias="lora_only",
         )
 
-    # # 是否要加入新的special tokens
+    # new special tokens
     # num_added_toks = tokenizer.tokenizer.add_special_tokens(["<role_start>", "<role_end>"])
     # accelerator.print("We have added", num_added_toks, "tokens")
     # accelerator.print(f"role marker tokens {tokenizer.convert_tokens_to_ids('<role_start>')} {tokenizer.convert_tokens_to_ids('<role_end>')}, resized tokenizer_size: {len(tokenizer)}")
@@ -465,7 +465,6 @@ def main():
     tokenizer = build_tokenizer(args)
     # Note: resize_token_embeddings expects to receive the full size of the new vocabulary,
     # i.e. the length of the tokenizer.
-    # 如果新增special tokens, 需要resize input embedding 和output embedding
     # model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=32)
 
     accelerator.print("Model load_in_4bit: ", args.quantization == "4bit")

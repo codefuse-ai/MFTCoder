@@ -221,7 +221,7 @@ class MftTrainer:
                 "latest_ckpt": output_dir,
                 "lr": self.optimizer.param_groups[0]["lr"],
                 # 1 step back because ckping is after schuduler.step()
-                "scheduler_last_ep": self.lr_scheduler.state_dict().get("last_epoch", 0) - 1,
+                # "scheduler_last_ep": self.lr_scheduler.state_dict().get("last_epoch", 0) - 1,
             }
             with open(os.path.join(self.args.output_dir, "latest"), "w") as f:
                 json.dump(latest, f, indent=2)

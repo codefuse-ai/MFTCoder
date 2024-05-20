@@ -153,9 +153,14 @@ accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.p
 ```
 或者
 
-DeepSpeed配置在脚本中通过命令行输入。
+DeepSpeed Zero2 配置在脚本中通过命令行输入。
 ```bash
 sh ds_single_launch.sh
+```
+
+DeepSpeed Zero3 配置在脚本中通过命令行输入
+```bash
+sh ds_zero3_single_launch.sh
 ```
 
 #### Launch via FSDP

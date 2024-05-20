@@ -176,9 +176,13 @@ DeepSpeed config in accelerate_ds_config.yaml.
 accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
 ```
 or
-DeepSpeed config in command line arguments
+DeepSpeed Zero2 config in command line arguments
 ```bash
 sh ds_single_launch.sh
+```
+DeepSpeed Zero3 config in command line arguments
+```bash
+sh ds_zero3_single_launch.sh
 ```
 
 #### Launch via FSDP
