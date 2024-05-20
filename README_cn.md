@@ -47,7 +47,7 @@
 ## 新闻
 🔥🔥🔥 [2024/05/20] **MFTCoder-v0.4.2**发布。新增支持**QLoRA+ DeepSpeed Zero3**, **QLoRA + FSDP**训练模式，可以更好的支持微调更大的模型，比如Qwen1.5-70B等。新增对Qwen2, Qwen2-MoE, Starcoder2, Gemma等模型的支持。
 
-🔥🔥🔥 [2024/05/20] 我们的 [MFTCoder论文](https://arxiv.org/abs/2311.02303) 已被 KDD 2024 接收.
+🔥🔥🔥 [2024/05/20] 我们的论文 [MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning](https://arxiv.org/abs/2311.02303) 已被 KDD 2024 接收.
 
 🔥🔥🔥 开源了[CodeFuse-StarCoder2-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder2-15B)模型，在HumanEval上可以达到73.2%，多代码语言能力均衡.
 

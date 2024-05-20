@@ -48,7 +48,7 @@
 ## News
 🔥🔥🔥 [2024/05/20] We released **MFTCoder v0.4.2**, mainly for MFTCoder-accelerate. It supports **QLoRA + DeepSpeed Zero3** and **QLoRA + FSDP** as options allowing you training very large models. It now supports new models like Qwen2, Qwen2-MoE, Starcoder2, Gemma, etc.
 
-🔥🔥🔥 [2024/05/20] Our [MFTCoder Paper](https://arxiv.org/abs/2311.02303) has been accepted by KDD2024.
+🔥🔥🔥 [2024/05/20] Our paper [MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning](https://arxiv.org/abs/2311.02303) has been accepted by KDD2024.
 
 🔥🔥🔥 [2024/05/20] [CodeFuse-StarCoder2-15B](https://huggingface.co/codefuse-ai/CodeFuse-StarCoder2-15B) has been released, achieving a pass@1 (greedy decoding) score of 73.2% on HumanEval.
 
@@ -94,7 +94,7 @@
 
 
 ## Articles
-[MFT Arxiv paper](https://arxiv.org/abs/2311.02303)
+[MFTCoder: Boosting Code LLMs with Multitask Fine-Tuning (KDD2024)](https://arxiv.org/abs/2311.02303)
 
 ## Introduction
 
