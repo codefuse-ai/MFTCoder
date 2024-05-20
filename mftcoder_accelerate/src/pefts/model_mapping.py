@@ -1,6 +1,6 @@
 """
  # @author Chaoyu Chen
- # @date 2023/12/11
+ # @date 2024/5/20
 
  Manage supported models and their special token used in training.
  Default targeting modules for LoRA/QLora

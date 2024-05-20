@@ -1,6 +1,6 @@
 """
 # @author Chaoyu Chen
-# @date 2023/12/11
+# @date 2024/5/20
 # @module mft_accelerate.py
 
 Accelerate + DeepSpeed zero2/zero3/FSDP + Data Parallelism
