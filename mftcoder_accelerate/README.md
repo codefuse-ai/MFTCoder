@@ -193,7 +193,13 @@ accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate
 or
 FSDP config in command line arguments
 ```bash
-sh ds_single_launch.sh
+sh fsdp_single_launch.sh
+```
+
+#### MultiNode Launch
+Refer to the deepspeed multi-node launch script below.
+```bash
+sh ds_multinode_launch.sh
 ```
 
 #### Traing Arguments

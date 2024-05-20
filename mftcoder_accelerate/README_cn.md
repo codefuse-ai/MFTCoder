@@ -146,7 +146,7 @@ QLoRA通过4-bit的nf4量化，且加入更多adapter，在大幅减少显存消
 QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调，并且性能逼近全量参数微调。
 
 执行如下命令即可进行 Lora/QLora/全量 微调：
-#### Launch via Deepspeed
+#### Deepspeed 单机启动
 DeepSpeed配置在accelerate_ds_config.yaml中。
 ```bash
 accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
@@ -163,7 +163,7 @@ DeepSpeed Zero3 配置在脚本中通过命令行输入
 sh ds_zero3_single_launch.sh
 ```
 
-#### Launch via FSDP
+#### FSDP 单机启动
 FSDP配置在accelerate_fsdp_config.yaml中。
 ```bash
 accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "FSDP"
@@ -173,6 +173,12 @@ accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate
 FSDP配置在脚本中通过命令行输入。
 ```bash
 sh fsdp_single_launch.sh
+```
+
+#### 多机启动
+多机启动请参考如下deepspeed多机启动脚本
+```bash
+sh ds_multinode_launch.sh
 ```
 
 #### 训练参数
