@@ -1,6 +1,6 @@
 #!/bin/sh
 # Author: Chaoyu Chen
-# Last Modified: 2024/12/11
+# Last Modified: 2023/12/11
 # Description: An alternative(Command line) way to launch DeepSpeed training
 
 # Launch script on single node
