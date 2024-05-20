@@ -76,6 +76,7 @@
 | **CodeFuse-DeepSeek-33B**        |     **78.7%**     | 2024/01 |
 | **CodeFuse-CodeLlama-34B**       |     **74.4%**     | 2023/09 |
 | **CodeFuse-CodeLlama-34B-4bits** |     **73.8%**     | 2023/09 |
+| **CodeFuse-StarCoder2-15B**      |     **73.2%**     | 2023/05 |
 | WizardCoder-Python-34B-V1.0      |       73.2%       | 2023/08 |
 | GPT-4(zero-shot)                 |       67.0%       | 2023/03 |
 | PanGu-Coder2 15B                 |       61.6%       | 2023/08 |
