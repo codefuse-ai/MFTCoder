@@ -431,7 +431,7 @@ class MftTrainer:
         # Training Loop!
         for epoch in range(starting_epoch, self.args.num_train_epochs):
             # set_epoch 
-            self.train_dataloader.set_epoch(epoch)
+            # self.train_dataloader.set_epoch(epoch)
             
             # if we early stop by some ckpts not converging
             if self.args.early_stopping and stall_num == self.args.early_stopping_stall_num:

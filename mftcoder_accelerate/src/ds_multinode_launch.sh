@@ -9,7 +9,7 @@
 N_NODE=4
 N_GPU_PER_NODE=8
 
-# You need to export $RANK, $MASTER_ADDR, $MASTER_PORT automatically for each Node.
+# You need to export $MACHINE_RANK, $MASTER_ADDR, $MASTER_PORT automatically for each Node.
 
 # config path
 CONFIG="configs/xxx_train_config.json"
@@ -37,7 +37,7 @@ accelerate launch \
     --mixed_precision 'bf16' \
     --dynamo_backend 'no' \
     --same_network \
-    --machine_rank $RANK \
+    --machine_rank $MACHINE_RANK \
     --main_process_ip $MASTER_ADDR \
     --main_process_port $MASTER_PORT \
     --rdzv_backend 'static' \
