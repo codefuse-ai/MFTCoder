@@ -1,10 +1,18 @@
 #!/bin/sh
 # Author: Chaoyu Chen
-# Last Modified: 2024/12/11
+# Last Modified: 2023/12/11
 # Description: An alternative(command line) way to launch FSDP training
 
 # Launch script on single node
 N_GPU_PER_NODE=8
+
+# config path
+CONFIG="configs/xxx_train_config.json"
+
+# fsdp_transformer_layer_cls_to_wrap, choose the DecoderLayer
+WRAP_MODULE="LlamaDecoderLayer"
+
+
 
 # envs used inside training
 export OMP_NUM_THREADS=4
@@ -21,7 +29,7 @@ accelerate launch \
     --fsdp_auto_wrap_policy=TRANSFORMER_BASED_WRAP \
     --fsdp_state_dict_type=FULL_STATE_DICT \
     --fsdp_backward_prefetch_policy=BACKWARD_PRE \
-    --fsdp_transformer_layer_cls_to_wrap=LlamaDecoderLayer \
+    --fsdp_transformer_layer_cls_to_wrap=$WRAP_MODULE \
     --fsdp_offload_params=false \
     --main_training_function=main \
     --mixed_precision=bf16 \
@@ -29,7 +37,7 @@ accelerate launch \
     --same_network \
     --machine_rank=0 \
     --rdzv_backend=static \
-    pefts/mft_accelerate.py --train_config configs/"xxx_train_config.json" \
+    pefts/mft_accelerate.py --train_config "$CONFIG" \
         --distributed_type "fsdp" \
         > MFTCoder-training-"$TODAY".log 2>&1 &
 

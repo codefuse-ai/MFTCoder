@@ -16,13 +16,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModel
 from peft import LoraConfig, get_peft_model
 from peft import PeftModel
 
-# insert src as import path  
+# insert src as import path
 current_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_path))
 sys.path.insert(0, parent_dir)
 print("In merge_base_and_lora_to_hf.py, sys path:", sys.path)
 
 from pefts.model_mapping import MODEL_SPECIAL_TOKENS
+from tokenizer.chat_template import MFTCoder_template
 
 
 def copy_tokenizer_files(mode_path: str, files_list: List[str], save_path: str):
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     t0 = time.time()
     config = {"model_type": model_type}
     tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    tokenizer.chat_template = MFTCoder_template
 
     base_model = AutoModelForCausalLM.from_pretrained(
         model_path,

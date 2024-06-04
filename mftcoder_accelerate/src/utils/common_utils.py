@@ -1,9 +1,28 @@
 import os
 import math
 import torch
+from packaging import version
+import importlib
 
 TASK2ID = {}
 ID2TASK = {}
+
+
+def is_flash_attn_2_available():
+
+    # Let's add an extra check to see if cuda is available
+
+    if not torch.cuda.is_available():
+        return False
+
+    if torch.version.cuda:
+        return version.parse(importlib.metadata.version("flash_attn")) >= version.parse("2.1.0")
+    elif torch.version.hip:
+        # TODO: Bump the requirement to 2.1.0 once released in https://github.com/ROCmSoftwarePlatform/flash-attention
+        return version.parse(importlib.metadata.version("flash_attn")) >= version.parse("2.0.4")
+    else:
+        return False
+
 
 def print_rank_0(*message):
     """If distributed is initialized print only on rank 0."""
@@ -92,30 +111,24 @@ def get_tflops_new(args, batch_size, seq_len, step_time):
     L = args.num_hidden_layers
     h = args.hidden_size
     V = args.vocab_size
-    flops = (96 * batch_size * sl * L * h * h * (1 + sl / (6 * h) + V / (16 * L * h)) / step_time)
+    flops = 96 * batch_size * sl * L * h * h * (1 + sl / (6 * h) + V / (16 * L * h)) / step_time
     return human_readable_flops(flops)
 
 
-def get_tflops_megatron(total_model_param, hidden_size, num_hidden_layers, 
-                        batch_size_per_device, seq_len, step_time):
+def get_tflops_megatron(total_model_param, hidden_size, num_hidden_layers, batch_size_per_device, seq_len, step_time):
 
     ff = total_model_param * 6
     attn = seq_len * hidden_size * num_hidden_layers * 60
-    flops = (
-        batch_size_per_device
-        * seq_len
-        * (ff + attn)
-        / step_time
-    )
+    flops = batch_size_per_device * seq_len * (ff + attn) / step_time
     return human_readable_flops(flops)
 
 
 def generate_task_id(data_paths):
-    data_prefixes = list(data_paths[1:-1].split(','))
+    data_prefixes = list(data_paths[1:-1].split(","))
     print("data paths: ")
     print(data_prefixes)
 
     for i, prefix in enumerate(data_prefixes):
-        task_name = prefix.split('/')[-1]
+        task_name = prefix.split("/")[-1]
         TASK2ID[task_name] = i
         ID2TASK[i] = task_name

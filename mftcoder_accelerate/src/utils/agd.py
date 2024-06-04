@@ -83,22 +83,14 @@ class AGD(torch.optim.Optimizer):
                 if len(state) == 0:
                     state["step"] = 0
                     # Exponential moving average of gradient values
-                    state["exp_avg"] = torch.zeros_like(
-                        p, memory_format=torch.preserve_format
-                    )
+                    state["exp_avg"] = torch.zeros_like(p, memory_format=torch.preserve_format)
                     # Exponential moving average of squared gradient values
-                    state["exp_avg_sq"] = torch.zeros_like(
-                        p, memory_format=torch.preserve_format
-                    )
+                    state["exp_avg_sq"] = torch.zeros_like(p, memory_format=torch.preserve_format)
                     if group["amsgrad"]:
                         # Maintains max of all exp. moving avg. of sq. grad. values
-                        state["max_exp_avg_sq"] = torch.zeros_like(
-                            p, memory_format=torch.preserve_format
-                        )
+                        state["max_exp_avg_sq"] = torch.zeros_like(p, memory_format=torch.preserve_format)
                     if group["win"]:
-                        state["z"] = torch.zeros_like(
-                            p, memory_format=torch.preserve_format
-                        )
+                        state["z"] = torch.zeros_like(p, memory_format=torch.preserve_format)
 
                 exp_avg, exp_avg_sq = (
                     state["exp_avg"],
@@ -116,8 +108,7 @@ class AGD(torch.optim.Optimizer):
                 update = (
                     exp_avg * (1 / bias_correction1)
                     if state["step"] == 1
-                    else exp_avg * (1 / bias_correction1)
-                    - exp_avg_old * (1 / bias_correction1_old)
+                    else exp_avg * (1 / bias_correction1) - exp_avg_old * (1 / bias_correction1_old)
                 )
                 exp_avg_sq.mul_(beta2).addcmul_(update, update, value=1 - beta2)
 

@@ -27,11 +27,22 @@ IMEND = "<|im_end|>"
 # regular texts, the surface forms of special tokens need to be
 # as different as possible to minimize the impact
 EXTRAS = tuple((f"<|extra_{i}|>" for i in range(205)))
-SPECIAL_TOKENS = (
-    ENDOFTEXT,
-    IMSTART,
-    IMEND,
-) + EXTRAS
+# changed to use actual index to avoid misconfiguration with vocabulary expansion
+SPECIAL_START_ID = 151643
+SPECIAL_TOKENS = tuple(
+    enumerate(
+        (
+            (
+                ENDOFTEXT,
+                IMSTART,
+                IMEND,
+            )
+            + EXTRAS
+        ),
+        start=SPECIAL_START_ID,
+    )
+)
+SPECIAL_TOKENS_SET = set(t for i, t in SPECIAL_TOKENS)
 
 
 def _load_tiktoken_bpe(tiktoken_bpe_file: str) -> Dict[bytes, int]:
@@ -42,6 +53,7 @@ def _load_tiktoken_bpe(tiktoken_bpe_file: str) -> Dict[bytes, int]:
         for token, rank in (line.split() for line in contents.splitlines() if line)
     }
 
+
 class QWenTokenizer(PreTrainedTokenizer):
     """QWen tokenizer."""
 
@@ -51,19 +63,34 @@ class QWenTokenizer(PreTrainedTokenizer):
         self,
         vocab_file,
         errors="replace",
+        extra_vocab_file=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self.errors = errors  # how to handle errors in decoding
+        # how to handle errors in decoding UTF-8 byte sequences
+        # use ignore if you are in streaming inference
+        self.errors = errors  
 
-        self.mergeable_ranks = _load_tiktoken_bpe(vocab_file)  # type: dict[bytes, int]
+        self.mergeable_ranks = _load_tiktoken_bpe(vocab_file)  # type: Dict[bytes, int]
         self.special_tokens = {
             token: index
-            for index, token in enumerate(
-                SPECIAL_TOKENS, start=len(self.mergeable_ranks)
-            )
+            for index, token in SPECIAL_TOKENS
         }
+
+        # try load extra vocab from file
+        if extra_vocab_file is not None:
+            used_ids = set(self.mergeable_ranks.values()) | set(self.special_tokens.values())
+            extra_mergeable_ranks = _load_tiktoken_bpe(extra_vocab_file)
+            for token, index in extra_mergeable_ranks.items():
+                if token in self.mergeable_ranks:
+                    logger.info(f"extra token {token} exists, skipping")
+                    continue
+                if index in used_ids:
+                    logger.info(f'the index {index} for extra token {token} exists, skipping')
+                    continue
+                self.mergeable_ranks[token] = index
+            # the index may be sparse after this, but don't worry tiktoken.Encoding will handle this
 
         enc = tiktoken.Encoding(
             "Qwen",
@@ -89,7 +116,7 @@ class QWenTokenizer(PreTrainedTokenizer):
     def __getstate__(self):
         # for pickle lovers
         state = self.__dict__.copy()
-        del state['tokenizer']
+        del state["tokenizer"]
         return state
 
     def __setstate__(self, state):
@@ -102,7 +129,6 @@ class QWenTokenizer(PreTrainedTokenizer):
             special_tokens=self.special_tokens,
         )
         self.tokenizer = enc
-
 
     def __len__(self) -> int:
         return self.tokenizer.n_vocab
@@ -126,13 +152,17 @@ class QWenTokenizer(PreTrainedTokenizer):
                 ids.append(self.mergeable_ranks.get(token))
         return ids
 
-    def _add_tokens(self, new_tokens: Union[List[str], List[AddedToken]], special_tokens: bool = False) -> int:
+    def _add_tokens(
+        self,
+        new_tokens: Union[List[str], List[AddedToken]],
+        special_tokens: bool = False,
+    ) -> int:
         if not special_tokens and new_tokens:
-            raise ValueError('Adding regular tokens is not supported')
+            raise ValueError("Adding regular tokens is not supported")
         for token in new_tokens:
             surface_form = token.content if isinstance(token, AddedToken) else token
-            if surface_form not in SPECIAL_TOKENS:
-                raise ValueError('Adding unknown special tokens is not supported')
+            if surface_form not in SPECIAL_TOKENS_SET:
+                raise ValueError("Adding unknown special tokens is not supported")
         return 0
 
     def save_vocabulary(self, save_directory: str, **kwargs) -> Tuple[str]:

@@ -1,6 +1,6 @@
 #!/bin/sh
 # Author: Chaoyu Chen
-# Last Modified: 2023/12/11
+# Last Modified: 2024/5/20
 # Description: An alternative(Command line) way to launch DeepSpeed training
 
 # Launch script on single node
@@ -20,13 +20,13 @@ accelerate launch \
     --num_machines 1 \
     --num_processes $N_GPU_PER_NODE \
     --use_deepspeed \
-    --zero_stage 2 \
+    --zero_stage 3 \
     --offload_optimizer_device 'cpu' \
-    --offload_param_device 'none' \
+    --offload_param_device 'cpu' \
     --gradient_accumulation_steps 1 \
     --gradient_clipping 1.0 \
-    --zero3_init_flag false \
-    --zero3_save_16bit_model false \
+    --zero3_init_flag true \
+    --zero3_save_16bit_model true \
     --main_training_function 'main' \
     --mixed_precision 'bf16' \
     --dynamo_backend 'no' \

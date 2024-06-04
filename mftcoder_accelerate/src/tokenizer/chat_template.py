@@ -4,25 +4,17 @@
 
 # store possible chat_template for tokenizers to prepare input string
 # -------------------------------------------------- Import ------------------------------------------------------------
-from transformers import (
-    AutoTokenizer
-)
-
-# ----------------------------------------------- func and class -------------------------------------------------------
-instruction_template = (
-    "{% for message in messages %}"
-    "{% if (message['role'] == 'user') != (loop.index0 % 2 == 0) %}"
-    "{{ raise_exception('Conversation roles must alternate user/assistant/user/assistant/...') }}"
-    "{% endif %}"
-    "{% if message['role'] == 'user' %}"
-    "{{ '[INST] ' + message['content'] + ' [/INST]' }}"
-    "{% elif message['role'] == 'assistant' %}"
-    "{{ message['content'] + eos_token}}"
-    "{% else %}"
-    "{{ raise_exception('Only user and assistant roles are supported!') }}"
-    "{% endif %}"
-    "{% endfor %}"
-)
+"""
+Usage:
+tokenizer = AutoTokenizer.from_pretrained(path, trust_remote_code=True)
+messages = [
+    {"role": "system", "content": "Be smart"},
+    {"role": "human", "content": "Hello, how are you?"},
+    {"role": "bot", "content": "I'm doing great. How can I help you today?"},
+    {"role": "human", "content": "I'd like to show off how chat templating works!"},
+]
+prompts = tokenizer.apply_chat_template(message, chat_template=MFTCoder_template, tokenize=False, add_generation_prompt=True)
+"""
 
 MFTCoder_template = (
     "{% if messages[0]['role'] == 'system' %}"
@@ -54,5 +46,5 @@ MFTCoder_template = (
     "{% endif %}"
 )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
