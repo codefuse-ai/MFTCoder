@@ -543,7 +543,7 @@ def main():
         model.parameters(),
         weight_decay=args.weight_decay,
         lr=args.learning_rate,
-        betas=(0.9, 0.95),
+        betas=(0.9, 0.999),
     )
     # for group in optimizer.param_groups:
     #     group.setdefault("initial_lr", group["lr"])

@@ -8,6 +8,7 @@ import numpy as np
 from typing import List, Union
 from utils.common_utils import print_rank_0
 from transformers import AutoTokenizer
+from tokenizer.chat_template import MFTCoder_template
 
 
 def build_tokenizer(args):
@@ -20,6 +21,11 @@ def build_tokenizer(args):
         tokenizer = AutoTokenizer.from_pretrained(args.pretrained_model_path, trust_remote_code=True)
         tokenizer.eod_id = tokenizer.convert_tokens_to_ids(args.eos_token)
         tokenizer.pad_id = tokenizer.convert_tokens_to_ids(args.pad_token)
+        try:
+            tokenizer.eos_token = args.eos_token
+            tokenizer.pad_token = args.pad_token
+        except:
+            print(f"[WARNING]Cannot set tokenizer.eos_token")
         print_rank_0(f"Tokenizer: {type(tokenizer)}")
         print_rank_0(f"Length of tokenizer: {len(tokenizer)}")
         print_rank_0(f"build_tokenizer PAD id: {tokenizer.pad_id}, EOD id: {tokenizer.eod_id}")
