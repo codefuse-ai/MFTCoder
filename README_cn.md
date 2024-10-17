@@ -192,4 +192,4 @@ sh init_env.sh
 **社招**：https://talent.antgroup.com/off-campus-position?positionId=1933830
 
 ## 联系我们
-![img_wx.jpg](./assets/CodeFuse-AI群.jpg)
+![CodeFuse-AI群.jpg](./assets/CodeFuse-AI群.jpg)
