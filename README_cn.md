@@ -27,7 +27,7 @@
     • 🤖 <a href="https://modelscope.cn/organization/codefuse-ai" target="_blank">魔搭</a>
 </p>
 
-[**中文**] [[English]](README.md)
+[**中文**] [[English]](README.md) [[日本語]](README_ja.md)
 
 </div>
 
