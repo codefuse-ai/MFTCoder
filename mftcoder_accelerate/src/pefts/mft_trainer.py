@@ -1,10 +1,10 @@
 """
-# @author Chaoyu Chen
+# @author qumu
 # @date 2024/4/12
 # @module trainer.py
 
 Accelerate + DeepSpeed/FSDP 
-QLoRA/LoRA/Full + SFT/MFT/MPT
+QLoRA/LoRA/Full + SFT/MFT
 
 Trainer
 """
@@ -150,6 +150,7 @@ class MftTrainer:
         self.args = args
         # tensorboard writer
         self.summary_writer = SummaryWriter(log_dir=args.tb_dir)
+        self.default_writer = SummaryWriter(log_dir="/home/admin/logs/tfevent")
 
     def print(self, msg: str):
         """
@@ -208,7 +209,7 @@ class MftTrainer:
                 )
             else:
                 self.tokenizer.save_pretrained(output_dir)
-        
+
             sf = os.path.join(output_dir, "model.safetensors")
             index_file = os.path.join(output_dir, "model.safetensors.index.json")
             if os.path.isfile(sf) and os.path.isfile(index_file):
@@ -219,8 +220,6 @@ class MftTrainer:
             latest = {
                 "latest_ckpt": output_dir,
                 "lr": self.optimizer.param_groups[0]["lr"],
-                # 1 step back because ckping is after schuduler.step()
-                # "scheduler_last_ep": self.lr_scheduler.state_dict().get("last_epoch", 0) - 1,
             }
             with open(os.path.join(self.args.output_dir, "latest"), "w") as f:
                 json.dump(latest, f, indent=2)
@@ -279,6 +278,7 @@ class MftTrainer:
 
         if self.accelerator.is_main_process:
             write_tensorboard(self.summary_writer, train_log_dict, completed_steps)
+            write_tensorboard(self.default_writer, train_log_dict, completed_steps)
 
         if selfpaced_status is not None:
             selfpaced_status.log_per_task_weight = torch.zeros(len(ID2TASK))
@@ -360,6 +360,7 @@ class MftTrainer:
 
         if self.accelerator.is_main_process:
             write_tensorboard(self.summary_writer, eval_log_dict, completed_steps)
+            write_tensorboard(self.default_writer, eval_log_dict, completed_steps)
 
         return eval_loss, eval_task_loss, min_eval_loss, stall_num, best_step
 
@@ -427,9 +428,9 @@ class MftTrainer:
 
         # Training Loop!
         for epoch in range(starting_epoch, self.args.num_train_epochs):
-            # set_epoch 
+            # set_epoch
             # self.train_dataloader.set_epoch(epoch)
-            
+
             # if we early stop by some ckpts not converging
             if self.args.early_stopping and stall_num == self.args.early_stopping_stall_num:
                 break
@@ -554,7 +555,7 @@ class MftTrainer:
                             self.accelerate_saving_checkpoint(output_dir, completed_steps)
 
                         # steps evaluation
-                        if completed_steps % self.args.evaluation_steps == 0:
+                        if completed_steps % self.args.evaluation_steps == 0 and self.valid_dataloader:
                             self.model.eval()
                             eval_loss, eval_task_loss, min_eval_loss, stall_num, best_step = self.accelerate_evaluate(
                                 completed_steps,
@@ -586,6 +587,7 @@ class MftTrainer:
                 self.accelerate_saving_checkpoint(output_dir, completed_steps)
 
         self.summary_writer.close()
+        self.default_writer.close()
 
         # final save
         # output_dir = f"final_step_{completed_steps}"

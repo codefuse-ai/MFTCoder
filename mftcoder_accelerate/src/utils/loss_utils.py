@@ -104,12 +104,12 @@ def loss_func_mft(outputs, labels, task_mask, task_id, weighted_loss_mode, loss_
     elif weighted_loss_mode == "case1":
         # flatten losses & loss_mask tensor
         if loss_mask is None:
-            losses = losses.view(-1)
-            loss = torch.sum(losses) / effective_tokens
+            # losses = losses.view(-1)
+            loss = torch.sum(losses.view(-1)) / effective_tokens
         else:
-            loss_mask = loss_mask.view(-1)
-            losses = losses.view(-1)
-            loss = torch.sum(losses * loss_mask) / loss_mask.sum()
+            # loss_mask = loss_mask.view(-1)
+            # losses = losses.view(-1)
+            loss = torch.sum(losses.view(-1) * loss_mask.view(-1)) / loss_mask.view(-1).sum()
 
     # fix task order
     task_loss = torch.zeros(len(ID2TASK)).to(device=task_id.device)

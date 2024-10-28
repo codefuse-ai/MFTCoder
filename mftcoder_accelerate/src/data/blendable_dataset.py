@@ -43,7 +43,7 @@ class BlendableDataset(torch.utils.data.Dataset):
 
         # recompute weights
         weights = self.calc_weights()
-        
+
         # Build indices.
         start_time = time.time()
         assert num_datasets < 255
@@ -63,9 +63,7 @@ class BlendableDataset(torch.utils.data.Dataset):
 
         print(
             "> RANK {} elapsed time for building blendable dataset indices: "
-            "{:.2f} (sec)".format(
-                torch.distributed.get_rank(), time.time() - start_time
-            )
+            "{:.2f} (sec)".format(torch.distributed.get_rank(), time.time() - start_time)
         )
 
     def calc_weights(self):
@@ -73,7 +71,7 @@ class BlendableDataset(torch.utils.data.Dataset):
         total_cnt = sum(dataset_sample_cnt)
         weights = np.array([(cnt + 0.0) / total_cnt for cnt in dataset_sample_cnt], dtype=np.float64)
         return weights
-    
+
     def __len__(self):
         return self.size
 

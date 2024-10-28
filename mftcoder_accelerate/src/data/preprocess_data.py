@@ -9,7 +9,7 @@ import sys
 import ftfy
 import glob
 
-# print("In preprocess_data.py, sys path:", sys.path)
+# print("In preprocess_data_new.py, sys path:", sys.path)
 
 from tokenizer import build_tokenizer
 
@@ -32,7 +32,7 @@ def content_format(content: str):
 
     # change chinese punctuation to english ones
     # text = text.translate(table)
-
+    # if not content.endswith("\n"):
     content += "\n"
 
     return content
@@ -101,6 +101,13 @@ def is_question_answer_format(data):
         return False
 
 
+def is_query_answer_format(data):
+    if "query" in data and "answer" in data:
+        return True
+    else:
+        return False
+
+
 class Encoder(object):
     tokenizer = None
 
@@ -125,7 +132,7 @@ class Encoder(object):
             if len(text_ids) > 0:
                 doc_ids.append(text_ids)
             if self.args.append_eod:
-                doc_ids[-1].append(Encoder.tokenizer.eod_id)
+                doc_ids[-1].append(Encoder.tokenizer.eos_token_id)
             ids[key] = doc_ids
         return ids, len(text)
 
@@ -163,6 +170,8 @@ class UniformEncoder(Encoder):
             data_type = "question_response"
         elif is_question_answer_format(data):
             data_type = "question_answer"
+        elif is_query_answer_format(data):
+            data_type = "query_answer"
         elif is_chatml_format(data):
             data_type = "chatML"
         elif is_text_format(data):
@@ -209,7 +218,7 @@ class UniformEncoder(Encoder):
         else:
             raise ValueError(f"tokenize_mode does not support {self.mode}, please use sft or pretrain")
 
-        sft_end_marker_ids = [Encoder.tokenizer.eod_id]
+        sft_end_marker_ids = [Encoder.tokenizer.eos_token_id]
         # uniform SST,SFT,MFT
         input_ids = []
         loss_mask = []
@@ -236,7 +245,7 @@ class UniformEncoder(Encoder):
                     content_ids = self.pure_encode(user_marker + content + assistant_marker)
                     input_ids += content_ids
                     loss_mask += [0] * len(content_ids)
-                elif role == "bot" or role == "assistant":
+                elif role == "bot" or role == "assistant" or role == "gpt":
                     content_ids = self.pure_encode(content) + sft_end_marker_ids
                     input_ids += content_ids
                     loss_mask += [1] * len(content_ids)
@@ -324,16 +333,16 @@ class UniformEncoder(Encoder):
                 yield {}
 
     def padding(self, input_ids, loss_mask):
-        pad_id = Encoder.tokenizer.pad_id
+        pad_id = Encoder.tokenizer.pad_token_id
         assert len(input_ids) <= self.seq_length, f"padding sequence: {len(input_ids)} > {self.seq_length}"
         input_ids += [pad_id] * (self.seq_length - len(input_ids))
         loss_mask += [0] * (self.seq_length - len(loss_mask))
         return {"input_ids": input_ids, "loss_mask": loss_mask}
 
 
-def find_jsonl_fnames(inputs):
+def find_jsonl_fnames(paths):
     fnames = []
-    for p in inputs.split(","):
+    for p in paths:
         if not os.path.isdir(p):
             if p.endswith(".jsonl"):
                 print(f"loading from {p}")
