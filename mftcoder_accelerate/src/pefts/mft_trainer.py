@@ -150,7 +150,6 @@ class MftTrainer:
         self.args = args
         # tensorboard writer
         self.summary_writer = SummaryWriter(log_dir=args.tb_dir)
-        self.default_writer = SummaryWriter(log_dir="/home/admin/logs/tfevent")
 
     def print(self, msg: str):
         """
@@ -278,7 +277,6 @@ class MftTrainer:
 
         if self.accelerator.is_main_process:
             write_tensorboard(self.summary_writer, train_log_dict, completed_steps)
-            write_tensorboard(self.default_writer, train_log_dict, completed_steps)
 
         if selfpaced_status is not None:
             selfpaced_status.log_per_task_weight = torch.zeros(len(ID2TASK))
@@ -360,7 +358,6 @@ class MftTrainer:
 
         if self.accelerator.is_main_process:
             write_tensorboard(self.summary_writer, eval_log_dict, completed_steps)
-            write_tensorboard(self.default_writer, eval_log_dict, completed_steps)
 
         return eval_loss, eval_task_loss, min_eval_loss, stall_num, best_step
 
@@ -587,7 +584,6 @@ class MftTrainer:
                 self.accelerate_saving_checkpoint(output_dir, completed_steps)
 
         self.summary_writer.close()
-        self.default_writer.close()
 
         # final save
         # output_dir = f"final_step_{completed_steps}"
