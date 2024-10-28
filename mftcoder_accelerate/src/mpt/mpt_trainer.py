@@ -189,7 +189,7 @@ class MptTrainer:
         logger.info(f"[CHECKPOINT] Saving checkpoint states")
         self.accelerator.save_state(output_dir)
         self.accelerator.wait_for_everyone()
-        
+
         # save safetensors for direct inference if needed
         if self.args.save_transformers_model:
             logger.info(f"[CHECKPOINT] Saving transformers(hf) model", main_process_only=True)
@@ -202,7 +202,7 @@ class MptTrainer:
                 state_dict=self.accelerator.get_state_dict(self.model),
             )
             self.accelerator.wait_for_everyone()
-        
+
         # tokenizer saving and bug dummy ckpt cleaning.
         if self.accelerator.is_main_process:
             if self.args.model_type.lower() == "deepseek":
@@ -211,7 +211,7 @@ class MptTrainer:
                 )
             else:
                 self.tokenizer.save_pretrained(output_dir)
-            
+
             sf = os.path.join(output_dir, "model.safetensors")
             index_file = os.path.join(output_dir, "model.safetensors.index.json")
             if os.path.isfile(sf) and os.path.isfile(index_file):
