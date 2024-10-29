@@ -7,6 +7,8 @@
 [[中文]](README_cn.md) [**English**]
 
 ## 1. Updates
+🔥 MFTCoder-accelerate supports latest implementation of CoBa Loss (selfpaced Loss) for better Convergence Balance.
+
 🔥 MFTCoder-accelerate now support these modes: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, Full-parameter + DeepSpeed ZeRO3, QLoRA + FSDP, Full-parameter + FSDP.
 
 🔥 MFTCoder-accelerate supports QLoRA + DeepSpeed ZeRO3 and QLoRA + FSDP, which both work for larger models;

@@ -126,14 +126,16 @@ class MptTrainArgs:
     # if dynamic padding
     use_dynamic_padding: bool = True
 
-    # interval of update per task train weight in selfpaced
-    selfpaced_interval: int = 1
-    # history length of sample valid loss used to fit the slope curve in selfpaced
-    selfpaced_history_length: int = 100
-    # the number of mini valid batches sampled at each interval
-    selfpaced_sample_valid_num: int = 1
-    # scale factor before softmax
-    selfpaced_scale_factor: int = 50
+    # warm-up steps for CoBa, recommand the number of valid batches
+    coba_warmup_steps: int = 100
+    # history length of sample valid loss used to fit the slope curve in CoBa
+    coba_history_length: int = 200
+    # temperature for divergence factor in CoBa
+    coba_tau: int = 5
+    # iteration interval of update per task train weight in CoBa
+    coba_update_interval: int = 1
+    # the number of mini valid batches sampled at each updated iteration interval
+    coba_sample_valid_num: int = 1
 
     # ATTENTION_CLASSES = { "eager": Normal Attention, "flash_attention_2": FlashAttention2}
     attn_implementation: str = "flash_attention_2"

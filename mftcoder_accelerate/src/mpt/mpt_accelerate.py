@@ -209,7 +209,7 @@ def prepare_args():
     # generate TASK2ID, ID2TASK
     generate_task_id(args.data_paths)
 
-    if args.weighted_loss_mode == "selfpaced":
+    if args.weighted_loss_mode == "coba":
         args.task_weights = [1.0] * len(ID2TASK)
     elif args.task_weights is not None:
         args.task_weights = [float(wt) for wt in args.task_weights[1:-1].split(",")]
