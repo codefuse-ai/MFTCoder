@@ -310,7 +310,7 @@ class CoBaStatus(MFTLossStatus):
 
         return per_task_weight
     
-    def fit_window_slope(self, x, y, type='slope'):
+    def fit_window_slope(self, x, y, type="slope"):
 
         y = y[y != 0]
         x = x[:len(y)]
@@ -323,7 +323,7 @@ class CoBaStatus(MFTLossStatus):
         ws = ws.double()
 
         if len(y) >= 2:
-            if type == 'slope':
+            if type == "slope":
                 X = torch.stack((x, torch.ones_like(x, dtype=torch.float64))).T
                 X = X.double()
             else:
