@@ -128,7 +128,7 @@ class MptTrainArgs:
 
     # warm-up steps for CoBa, recommand the number of valid batches
     coba_warmup_steps: int = 100
-    # history length of sample valid loss used to fit the slope curve in CoBa
+    # history length of sample valid loss used to fit the slope curve in CoBa, recommand [2*coba_warmup_steps,5*coba_warmup_steps]
     coba_history_length: int = 200
     # temperature for divergence factor in CoBa
     coba_tau: int = 5

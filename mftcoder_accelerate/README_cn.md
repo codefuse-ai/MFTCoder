@@ -219,6 +219,13 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 - **saving_limit**：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
 - **role_markers**: null，即使用{"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n"}。 你可以自定义 "system", "user" and "assistant"的模板， 用于定制自己的问答或者对话模板，比如 {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
+#### CoBa相关参数配置
+- **coba_warmup_steps**: CoBa的warm-up步数。在warm-up期间，各任务权重相等，warm-up之后，开始动态调整权重。一般建议设置为与valid batch总数量相近即可。
+- **coba_history_length**: CoBa维护的valid loss的历史窗口长度，用于拟合当前步收敛斜率。一般建议设置为2倍**coba_warmup_steps**至5倍**coba_warmup_steps**之间。一般该值越大，权重的变化幅度就会越小。
+- **coba_tau**: 发散因子（DF）的温度系数。一般设置为5即可。
+- **coba_update_interval**: CoBa更新权重的频率。一般设置为1，即每一步都对权重做更新。
+- **coba_sample_valid_num**: CoBa每一步要取的valid batch数。理论上当该值等于valid batch总数量时，拟合出的收敛斜率最逼近真实情况，但考虑到计算需求，建议设置为1。
+
 ## 4. 模型使用
 
 ### 4.1 权重合并
