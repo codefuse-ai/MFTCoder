@@ -273,7 +273,7 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 
 - **role_markers**: {"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n} as default(null). You could set your preferred role_markers as the templates startting "system", "user" and "assistant". e.g. {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
-#### CoBa Parameter Configuration
+#### CoBa Arguments Configuration
 - **coba_warmup_steps**: The number of warm-up steps for CoBa. During the warm-up period, all task weights are equal, and after the warm-up, weights begin to be adjusted dynamically. It is generally recommended to set this close to the total number of validation batches.
 - **coba_history_length**: The historical window length of validation loss maintained by CoBa, used to fit the convergence slope at the current step. It is generally recommended to set this between 2 times and 5 times the **coba_warmup_steps**. Typically, the larger this value, the smaller the changes in weights will be.
 - **coba_tau**: The temperature coefficient for the Divergence Factor (DF). It is generally set to 5.
