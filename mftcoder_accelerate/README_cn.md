@@ -7,6 +7,10 @@
 [**中文**] [[English]](README.md)
 
 ## 1. 更新
+🔥 MFTCoder-accelerate 增加了xxpo模块，支持dpo训练。
+
+🔥 MFTCoder-accelerate 增加了mpt模块，借助offline_tokenization模块，支持全量参数加训。
+
 🔥 MFTCoder-accelerate 增加了CoBa Loss的最新实现（原selfpaced Loss）, 让收敛均衡更进一步。
 
 🔥 MFTCoder-accelerate 最新支持的训练模式包括: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, 全量 + DeepSpeed ZeRO3, QLoRA + FSDP, 全量 + FSDP。

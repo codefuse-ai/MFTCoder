@@ -7,7 +7,11 @@
 [[中文]](README_cn.md) [**English**]
 
 ## 1. Updates
-🔥 MFTCoder-accelerate supports latest implementation of CoBa Loss (selfpaced Loss) for better Convergence Balance.
+🔥 MFTCoder-accelerate now supports DPO/ORPO training through xxpo module.
+
+🔥 MFTCoder-accelerate now supports continue training through mpt module along with offline_tokenization module.
+
+🔥 MFTCoder-accelerate supports MFT with latest implementation of CoBa Loss (selfpaced Loss) for better Convergence Balance.
 
 🔥 MFTCoder-accelerate now support these modes: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, Full-parameter + DeepSpeed ZeRO3, QLoRA + FSDP, Full-parameter + FSDP.
 
