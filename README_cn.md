@@ -45,7 +45,9 @@
 
 
 ## 新闻
-🔥🔥🔥 [2024/10/29] 我们的论文 [CoBa: Convergence Balancer for Multitask Finetuning of Large Language Models](https://arxiv.org/abs/2410.06741) 已被 EMNLP 2024 接收，可以实现多任务收敛均衡。
+🔥🔥🔥 [2024/11/01] **MFTCoder-v0.5**发布，新增**xxpo**模块支持偏好对齐DPO/RPO/ORPO；新增**mpt**和**offline_tokenization**模块支持全量参数的加训；在原本的**pefts**模块（MFT）更新selfpaced收敛均衡技术并更名CoBa。
+
+🔥🔥🔥 [2024/11/01] 我们的论文 [CoBa: Convergence Balancer for Multitask Finetuning of Large Language Models](https://arxiv.org/abs/2410.06741) 已被 EMNLP 2024 接收，可以实现多任务收敛均衡。
 
 🔥🔥🔥 [2024/05/20] **MFTCoder-v0.4**发布。新增支持**QLoRA+ DeepSpeed Zero3**, **QLoRA + FSDP**训练模式，可以更好的支持微调更大的模型，比如Qwen1.5-70B等。新增对Qwen2, Qwen2-MoE, Starcoder2, Gemma等模型的支持。
 

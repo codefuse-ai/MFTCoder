@@ -3,8 +3,8 @@ pandas==2.2.1
 torch==2.1.0
 tensorboard==2.11.0
 deepspeed==0.14.0
-transformers==4.40.2
-accelerate==0.28.0
+transformers==4.44.2
+accelerate==0.31.0
 peft==0.10.0
 BitsAndBytes==0.43.0
 xformers==0.0.22.post7
