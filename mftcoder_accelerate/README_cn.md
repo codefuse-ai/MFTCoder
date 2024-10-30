@@ -26,7 +26,7 @@
 🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等
 
 ## 2. 数据格式
-### 2.1 训练数据格式
+### 2.1 MFT训练数据格式
 训练数据为jsonl格式，每一行的数据格式如下，其中chat_rounds字段是必需的，可以根据实际需求添加或删除其他字段。
 可以参考项目中的xxx.jsonl文件。
 ```json
@@ -82,6 +82,57 @@
 """
 ```
 
+### 2.3 DPO训练数据格式
+训练数据为jsonl格式，每一行的数据格式如下，其中chosen字段和rejected字段分别代表偏好对齐中的```chosen```和```rejected```，其内部依然是MFT的chatml格式。
+```json
+{
+    "chosen":[
+        {
+            "role": "system",
+            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题"
+        },
+        {
+            "role": "human",
+            "content": "写一个快速排序"
+        },
+        {
+            "role": "bot",
+            "content": "以下是一个快速排序算法xxxxxx"
+        },
+        {
+            "role": "human",
+            "content": "解释一下这段代码"
+        },
+        {
+            "role": "bot",
+            "content": "好的，这段代码xxx"
+        }
+    ],
+    "rejected":[
+        {
+            "role": "system",
+            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题"
+        },
+        {
+            "role": "human",
+            "content": "写一个快速排序"
+        },
+        {
+            "role": "bot",
+            "content": "以下是一个快速排序算法xxxxxx"
+        },
+        {
+            "role": "human",
+            "content": "解释一下这段代码"
+        },
+        {
+            "role": "bot",
+            "content": "对不起，我不会"
+        }
+    ]
+}
+```
+
 
 ## 3. 模型训练
 目前支持全量参数(Full-parameters)指令微调、QLoRA指令微调，LoRA指令微调。
@@ -106,6 +157,12 @@ mftcoder_accelerate
           |
           *pefts*
           |
+          *xxpo*
+          |
+          *mpt*
+          |
+          *offline_tokenization*
+          |
           tokenizer
           |
           utils
@@ -114,7 +171,11 @@ mftcoder_accelerate
 ```
 我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
 
-训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+MFT训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+
+DPO/ORPO训练入口文件是```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```
+
+MPT(全量加训)训练入口文件是```mftcoder_accelerate/src/mpt/mpt_accelerate.py```. MPT加训需要提前做好数据的tokenziation，通过```mftcoder_accelerate/src/run_offline_tokenization.sh```，你可以将数据通过cpu进行离线的tokenization。这和MFT/DPO中使用的在线tokenziation不同。
 
 参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
 
@@ -126,7 +187,7 @@ cd mftcoder_accelerate/src
 
 
 ### 3.1 数据tokenization
-训练时，我们将多轮对话拼接成如下格式（也是上文中的推理数据格式），然后进行tokenize。
+MFT/DPO训练时，我们将多轮对话拼接成如下格式（也是上文中的推理数据格式），然后进行tokenize。
 其中，默认情况下：
 
 ```<s>human\n```作为human/user的起始符，```<s>bot\n```作为bot/assistant的起始符，```{EOS_TOKEN}``` 表示eos_token。

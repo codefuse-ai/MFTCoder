@@ -24,7 +24,7 @@
 🔥 MFTCoder-accelerate supports finetuning most of mainstream open-source base models: codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen.
 
 ## 2. Data Format
-### 2.1 Training Data Format
+### 2.1 MFT Training Data Format
 The training data is required to be a uniformed JSONL format, in which each line of data has the following "chatML"-style JSON format. The "chat_rounds" field is required, and other fields can be added or removed based on specific needs. 
 The reason why we selected "chatML" style as our training and inference data format is that "chatML" style is compatible with both "conversation" and "instruction/response" scenarios.
 
@@ -59,7 +59,7 @@ For the keys of roles in "chat_rounds", you could use "system/human/bot" tuple o
 }
 ```
 
-### 2.2 Default Inference Data Format
+### 2.2 Default MFTCoder Inference Template  
 Inference data format is the real string format consumed by tokenizers and then LLMs. It is also the string format to which the training data is converted before tokenization.
 The default inference data format contains strings concatenated by conversation data(system, human and bot contents) in the training data format. 
 It is used as the data "seen"(before tokenization) by the model in training process.
@@ -89,6 +89,56 @@ User nth round input
 ```
 When applying inference, you always make your input string end with ```<s>bot\n``` to request the model generating answers.
 
+### 2.3 DPO训练数据格式
+The training data is required to be a uniformed JSONL format, in which each line of data has the following JSON format. The "chosen" and "rejected" fields are required as ```chosen``` and ```rejected``` in DPO training and both includes "chatml-style" contents.
+```json
+{
+    "chosen":[
+        {
+            "role": "system",
+            "content": "You are a expert in coding and help answer code questions"
+        },
+        {
+            "role": "human",
+            "content": "Write a python function of quick sort"
+        },
+        {
+            "role": "bot",
+            "content": "Below is the function of quick sort: ..."
+        },
+        {
+            "role": "human",
+            "content": "Explain the code"
+        },
+        {
+            "role": "bot",
+            "content": "OK, this code ..."
+        }
+    ],
+    "rejected":[
+        {
+            "role": "system",
+            "content": "You are a expert in coding and help answer code questions"
+        },
+        {
+            "role": "human",
+            "content": "Write a python function of quick sort"
+        },
+        {
+            "role": "bot",
+            "content": "Below is the function of quick sort: ..."
+        },
+        {
+            "role": "human",
+            "content": "Explain the code"
+        },
+        {
+            "role": "bot",
+            "content": "Sorry, I can not answer..."
+        }
+    ]
+}
+```
 
 
 ## 3. Model Training
@@ -116,6 +166,12 @@ mftcoder_accelerate
           |
           *pefts*
           |
+          *xxpo*
+          |
+          *mpt*
+          |
+          *offline_tokenization*
+          |
           tokenizer
           |
           utils
@@ -124,7 +180,11 @@ mftcoder_accelerate
 ```
 我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
 
-训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+MFT训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+
+DPO/ORPO训练入口文件是```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```
+
+MPT(全量加训)训练入口文件是```mftcoder_accelerate/src/mpt/mpt_accelerate.py```
 
 参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
 
@@ -133,8 +193,13 @@ mftcoder_accelerate
 cd mftcoder_accelerate/src
 ```
 
-You can find the implementations in the ```mftcoder_accelerate/src``` directory.
-The entry directory for fine-tuning training is ```mftcoder_accelerate/src```, and the entry file for training is ```mftcoder_accelerate/src/pefts/mft_accelerate.py```. 
+You can find the implementations in the ```mftcoder_accelerate/src``` directory
+The entry file for MFT training is ```mftcoder_accelerate/src/pefts/mft_accelerate.py```. 
+
+The entry file for DPO/ORPO training is ```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```. 
+
+The entry file for MPT(Continue Training) is ```mftcoder_accelerate/src/mpt/mpt_accelerate.py```. You need finish offline tokenization of your data via ```mftcoder_accelerate/src/run_offline_tokenization.sh```, which is different from the online tokenizaion used in MFT/DPO.
+
 Configurations are stored in the ```mftcoder_accelerate/src/configs``` directory for easy management and modification.
 
 **_As a result, before you start training, you should first change your dir by_**
@@ -142,7 +207,7 @@ Configurations are stored in the ```mftcoder_accelerate/src/configs``` directory
 cd mftcoder_accelerate/src
 ```
 
-### 3.1 Tokenization
+### 3.1 MFT Tokenization
 During training, we concatenate multi-turn dialogues into the following format (also known as the inference data format mentioned before) and then tokenize it. 
 
 In default format, ```<s>human\n``` starts the user's input (i.e., prompt),```<s>bot\n``` starts the assistant's output (i.e., response)
