@@ -345,6 +345,11 @@ Frequently used arguments are provided in ```configs/***_train_config``` and exp
 - **coba_update_interval**: The frequency at which CoBa updates weights. It is commonly set to 1, meaning weights are updated at every step.
 - **coba_sample_valid_num**: The number of validation batches to be sampled by CoBa at each step. Theoretically, when this value equals the total number of validation batches, the fitted convergence slope most closely approximates the actual situation. However, considering computational requirements, it is recommended to set it to 1.
 
+#### DPO Arguments Configuration
+- **xxpo**: preference optimization type, "dpo" or "orpo".
+- **beta**: DPO beta, smaller beta allows larger distance between dpo model and ref model.
+- **rpo_alpha**: The coefficient of the ```chosen``` NLL loss added to dpo loss. 
+
 ## 4. Model Usage
 
 ### 4.1 Merge Adaptor weights

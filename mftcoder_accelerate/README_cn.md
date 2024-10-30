@@ -287,6 +287,11 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 - **coba_update_interval**: CoBa更新权重的频率。一般设置为1，即每一步都对权重做更新。
 - **coba_sample_valid_num**: CoBa每一步要取的valid batch数。理论上当该值等于valid batch总数量时，拟合出的收敛斜率最逼近真实情况，但考虑到计算需求，建议设置为1。
 
+#### DPO 相关参数配置
+- **xxpo**: 偏好对齐方法, "dpo" 或者 "orpo".
+- **beta**: DPO beta, beta 越小，允许对齐后的dpo模型与ref模型的距离越远
+- **rpo_alpha**: 加到dop损失的```chosen``` NLL损失的系数，0的话就是原始DPO。
+- 
 ## 4. 模型使用
 
 ### 4.1 权重合并
