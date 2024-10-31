@@ -15,19 +15,19 @@
 
 🔥 MFTCoder-accelerate 最新支持的训练模式包括: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, 全量 + DeepSpeed ZeRO3, QLoRA + FSDP, 全量 + FSDP。
 
-🔥 MFTCoder-accelerate 新增支持QLoRA + DeepSpeed ZeRO3， 支持QLoRA + FSDP, 可以训练更大的模型;
+🔥 MFTCoder-accelerate 新增支持QLoRA + DeepSpeed ZeRO3， 支持QLoRA + FSDP, 可以训练更大的模型。
 
-🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA;
+🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA。
 
-🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3；
+🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3。
 
-🔥 MFTCoder-accelerate 新增self-paced Loss, 用于收敛均衡；
+🔥 MFTCoder-accelerate 新增self-paced Loss, 用于收敛均衡。
 
-🔥 MFTCoder-accelerate 支持使用accelerate + DeepSpeed框架下支持 全量参数/QLoRA/LoRA微调； 
+🔥 MFTCoder-accelerate 支持使用accelerate + DeepSpeed框架下支持 全量参数/QLoRA/LoRA微调。
 
-🔥 MFTCoder-accelerate 在训练中支持了多任务微调MFT， 可以同时平衡多个任务的训练，训练的模型支持多任务推理； 
+🔥 MFTCoder-accelerate 在训练中支持了多任务微调MFT， 可以同时平衡多个任务的训练，训练的模型支持多任务推理。
 
-🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等
+🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等。
 
 ## 2. 数据格式
 ### 2.1 MFT训练数据格式
@@ -87,7 +87,7 @@
 ```
 
 ### 2.3 DPO训练数据格式
-训练数据为jsonl格式，每一行的数据格式如下，其中chosen字段和rejected字段分别代表偏好对齐中的```chosen```和```rejected```，其内部依然是MFT的chatml格式。
+训练数据为jsonl格式，每一行的数据格式如下，其中chosen字段和rejected字段分别代表偏好对齐中的```chosen```和```rejected```，其内部依然是MFT的chatml格式，并且只有最后一轮对话的bot content不同。
 ```json
 {
     "chosen":[
@@ -292,8 +292,8 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 - **coba_sample_valid_num**: CoBa每一步要取的valid batch数。理论上当该值等于valid batch总数量时，拟合出的收敛斜率最逼近真实情况，但考虑到计算需求，建议设置为1。
 
 #### DPO 相关参数配置
-- **xxpo**: 偏好对齐方法, "dpo" 或者 "orpo".
-- **beta**: DPO beta, beta 越小，允许对齐后的dpo模型与ref模型的距离越远
+- **xxpo**: 偏好对齐方法, "dpo" 或者 "orpo"。
+- **beta**: DPO beta, beta 越小，允许对齐后的dpo模型与ref模型的距离越远。
 - **rpo_alpha**: 加到dop损失的```chosen``` NLL损失的系数，0的话就是原始DPO。
 - 
 ## 4. 模型使用

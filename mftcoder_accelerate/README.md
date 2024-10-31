@@ -15,13 +15,13 @@
 
 🔥 MFTCoder-accelerate now support these modes: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, Full-parameter + DeepSpeed ZeRO3, QLoRA + FSDP, Full-parameter + FSDP.
 
-🔥 MFTCoder-accelerate supports QLoRA + DeepSpeed ZeRO3 and QLoRA + FSDP, which both work for larger models;
+🔥 MFTCoder-accelerate supports QLoRA + DeepSpeed ZeRO3 and QLoRA + FSDP, which both work for larger models.
 
-🔥 MFTCoder-accelerate supports MFT/SFT on more new mainstream open-source base models: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3;
+🔥 MFTCoder-accelerate supports MFT/SFT on more new mainstream open-source base models: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3.
 
-🔥 MFTCoder-accelerate supports Self-Paced Loss for Convergence Balance;
+🔥 MFTCoder-accelerate supports Self-Paced Loss for Convergence Balance.
 
-🔥 MFTCoder-accelerate supports Full-parameters/QLoRA/LoRA using accelerate + DeepSpeed Framework;
+🔥 MFTCoder-accelerate supports Full-parameters/QLoRA/LoRA using accelerate + DeepSpeed Framework.
 
 🔥 MFTCoder-accelerate supports Multitask Fine-Tuning(MFT), which is able to balance diffenrent tasks in data level.
 
@@ -94,7 +94,7 @@ User nth round input
 When applying inference, you always make your input string end with ```<s>bot\n``` to request the model generating answers.
 
 ### 2.3 DPO训练数据格式
-The training data is required to be a uniformed JSONL format, in which each line of data has the following JSON format. The "chosen" and "rejected" fields are required as ```chosen``` and ```rejected``` in DPO training and both includes "chatml-style" contents.
+The training data is required to be a uniformed JSONL format, in which each line of data has the following JSON format. The "chosen" and "rejected" fields are required as ```chosen``` and ```rejected``` in DPO training and both includes "chatml-style" contents(only last content of bot differs).
 ```json
 {
     "chosen":[

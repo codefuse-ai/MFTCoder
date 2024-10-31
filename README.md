@@ -46,9 +46,9 @@
 
 
 ## News
-🔥🔥🔥 [2024/11/01] We released **MFTCoder v0.5** mainly for MFTCoder-accelerate, which is now supporting preference alignment methods like **DPO/RPO/ORPO** in the new **xxpo** module, adding full-parameter continue-training in the additional **mpt** module along with its **offline_tokenization** module, updating selfpaced method to new convergence balance(CoBa) method for MFT in the original **pefts** module.
+🔥🔥🔥 [2024/10/31] We released **MFTCoder v0.5** mainly for MFTCoder-accelerate, which is now supporting preference alignment methods like **DPO/RPO/ORPO** in the new **xxpo** module, adding full-parameter continue-training in the additional **mpt** module along with its **offline_tokenization** module, updating selfpaced method to new convergence balance(CoBa) method for MFT in the original **pefts** module.
 
-🔥🔥🔥 [2024/11/01] Our paper [CoBa: Convergence Balancer for Multitask Finetuning of Large Language Models](https://arxiv.org/abs/2410.06741) has been accepted by EMNLP-2024, which achieves balanced convergence across various tasks.
+🔥🔥🔥 [2024/10/31] Our paper [CoBa: Convergence Balancer for Multitask Finetuning of Large Language Models](https://arxiv.org/abs/2410.06741) has been accepted by EMNLP-2024, which achieves balanced convergence across various tasks.
 
 🔥🔥🔥 [2024/05/20] We released **MFTCoder v0.4**, mainly for MFTCoder-accelerate. It supports **QLoRA + DeepSpeed Zero3** and **QLoRA + FSDP** as options allowing you training very large models. It now supports new models like Qwen2, Qwen2-MoE, Starcoder2, Gemma, etc.
 
