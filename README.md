@@ -27,7 +27,7 @@
     </a>
 </p>
 
-[[中文]](README_cn.md) [**English**]
+[[中文]](README_cn.md) [**English**] [[日本語]](README_ja.md)
 
 </div>
 
