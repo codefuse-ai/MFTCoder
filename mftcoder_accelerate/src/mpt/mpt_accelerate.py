@@ -1,9 +1,9 @@
 """
 # @author Chaoyu Chen
-# @date 2024/10/24
-# @module mft_accelerate.py
+# @date 2024/6/1
+# @module mpt_accelerate.py
 
-Accelerate + DeepSpeed/FSDP + QLoRA/LoRA/Full + Multi-task Finetuning
+Accelerate + DeepSpeed + Full-parameter + Multi-task + Pre-training/Continue Training/Finetuning
 
 Entry
 """
@@ -34,13 +34,7 @@ from transformers import (
     BitsAndBytesConfig,
     get_scheduler,
 )
-from peft import (
-    LoraConfig,
-    TaskType,
-    get_peft_model,
-    prepare_model_for_kbit_training,
-    PeftModel,
-)
+
 from accelerate import Accelerator, DistributedType, FullyShardedDataParallelPlugin, DataLoaderConfiguration
 from accelerate.logging import get_logger
 from datetime import timedelta
@@ -51,15 +45,13 @@ from transformers.optimization import Adafactor
 current_path = os.path.abspath(__file__)
 parent_dir = os.path.dirname(os.path.dirname(current_path))
 sys.path.insert(0, parent_dir)
-print("In mft_accelerate.py, sys path:", sys.path)
 
 from tokenizer import build_tokenizer
 from data.multi_task_dataset import load_dataset_from_jsonl, compile_helper
 from data.data_utils import load_dataset_from_bin
 from utils.common_utils import print_rank_0, generate_task_id, TASK2ID, ID2TASK
-
-from pefts.mft_trainer import MftTrainer
-from pefts.mft_arguments import MftTrainArgs
+from mpt.mpt_trainer import MptTrainer
+from mpt.mpt_arguments import MptTrainArgs
 from utils.model_mapping import MODEL_TYPES, SUPPORT_IN_TRANSFORMERS
 
 
@@ -119,7 +111,7 @@ class DataCollatorForMFTDataset(object):
             max_pos = loss_mask.shape[-1]
 
         if self.args.tokenize_mode == "sst" and self.args.padding_mode == "pack":
-            # sst + pack tokenization, remove last dirty data
+            # 兼容sst + pack tokenization, 最后一位是脏数据，需要去掉
             result_batch["loss_mask"] = loss_mask.float()[:, 1 : max_pos - 1].contiguous()
             input_ids = torch.tensor(np.array(input_ids)).long()
             result_batch["input_ids"] = input_ids[:, : max_pos - 2].contiguous()
@@ -132,7 +124,13 @@ class DataCollatorForMFTDataset(object):
             result_batch["labels"] = input_ids[:, 1:max_pos].contiguous()
 
         # Get the masks and position ids.
-        if self.args.model_type in ["mixtral", "qwen2_moe"]:
+
+        # if you want to be compatible with non-gpt models, something you can do here
+        if self.args.model_type in ["antglm"]:
+            (result_batch["attention_mask"], result_batch["position_ids"]) = get_attention_mask_and_position_ids(
+                data=result_batch["input_ids"]
+            )
+        elif self.args.model_type in ["mixtral", "mtx-qwen2", "qwen2_moe"]:
             batch_size, seq_length = result_batch["input_ids"].shape
             # bsz * seq_length
             range_tensor = torch.arange(seq_length).unsqueeze(0).repeat(batch_size, 1)
@@ -182,7 +180,7 @@ def prepare_args():
 
     # parse args from cofig.json
     # args = argparse.Namespace(**train_config)
-    args = MftTrainArgs(**train_config)
+    args = MptTrainArgs(**train_config)
 
     # override args by cli arguments
     if parsed.data_paths:
@@ -203,12 +201,6 @@ def prepare_args():
     args.distributed_type = parsed.distributed_type
 
     # refactor args
-
-    if args.peft_type == "qlora":
-        print_rank_0(f"[INFO] args.peft_type is set 'qlora', setting quantization to '4bit'")
-        args.quantization = "4bit"
-    else:
-        args.quantization = None
 
     args.vocab_file = args.pretrained_model_path
 
@@ -241,7 +233,7 @@ def main():
 
     # define accelerator
     init_process_kwargs = InitProcessGroupKwargs(timeout=timedelta(seconds=args.init_timeout_seconds))
-
+    
     if args.distributed_type and args.distributed_type.lower() == "fsdp":
         fsdp_plugin = FullyShardedDataParallelPlugin(
             # state_dict_config=FullStateDictConfig(offload_to_cpu=True, rank0_only=True),
@@ -287,14 +279,7 @@ def main():
         accelerator.print(f"[INFO] Existing latest: {latest}")
 
     if args.auto_resume and args.resume_from_checkpoint is None and latest:
-        if args.peft_type:
-            args.resume_from_checkpoint = latest["latest_ckpt"]
-        else:
-            args.resume_from_checkpoint = latest["latest_ckpt"]
-            args.pretrained_model_path = args.resume_from_checkpoint
-        args.learning_rate = latest["lr"]
-    elif args.resume_from_checkpoint and (not args.peft_type):
-        args.pretrained_model_path = args.resume_from_checkpoint
+        args.resume_from_checkpoint = latest["latest_ckpt"]
 
     # logger
     logging.basicConfig(
@@ -341,30 +326,12 @@ def main():
     max_memory = {i: max_memory for i in range(n_gpus)}
     accelerator.print("max memory: ", max_memory, n_gpus)
 
-    # target_modules, default all-linear for all linear layers
-    if args.target_modules:
-        target_modules = args.target_modules
-    else:
-        target_modules = "all-linear"
-
-    # peft config
-    if args.peft_type:
-        peft_config = LoraConfig(
-            task_type=TaskType.CAUSAL_LM,
-            inference_mode=False,
-            r=args.lora_rank,
-            lora_alpha=args.lora_alpha,
-            lora_dropout=args.lora_dropout,
-            target_modules=target_modules,
-            bias="lora_only",
-        )
-
     # # 是否要加入新的special tokens
     # num_added_toks = tokenizer.tokenizer.add_special_tokens(["<role_start>", "<role_end>"])
     # accelerator.print("We have added", num_added_toks, "tokens")
     # accelerator.print(f"role marker tokens {tokenizer.convert_tokens_to_ids('<role_start>')} {tokenizer.convert_tokens_to_ids('<role_end>')}, resized tokenizer_size: {len(tokenizer)}")
 
-    # creating base model
+    # creating model
     ModelClass = MODEL_TYPES[args.model_type]
     if args.model_type in SUPPORT_IN_TRANSFORMERS:
         accelerator.print(f"[INFO] Model Type {args.model_type} is supported by Transformers")
@@ -372,34 +339,12 @@ def main():
             args.pretrained_model_path,
             attn_implementation=args.attn_implementation,
             torch_dtype=torch.bfloat16,
-            quantization_config=(
-                BitsAndBytesConfig(
-                    load_in_4bit=(args.quantization == "4bit"),
-                    bnb_4bit_compute_dtype=torch.bfloat16,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_quant_storage=torch.bfloat16,
-                )
-                if args.quantization == "4bit"
-                else None
-            ),
         )
     else:
-        accelerator.print(f"[INFO] Model Type {args.model_type} is supported in our local model dir for remote code")
+        accelerator.print(f"[INFO] Model Type {args.model_type} is supported in our local model dir for remote code")  
         model = ModelClass.from_pretrained(
             args.pretrained_model_path,
             torch_dtype=torch.bfloat16,
-            quantization_config=(
-                BitsAndBytesConfig(
-                    load_in_4bit=(args.quantization == "4bit"),
-                    bnb_4bit_compute_dtype=torch.bfloat16,
-                    bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4",
-                    bnb_4bit_quant_storage=torch.bfloat16,
-                )
-                if args.quantization == "4bit"
-                else None
-            ),
         )
 
     # build a tokenizer for possible resizing or saving
@@ -409,33 +354,14 @@ def main():
     # 如果新增special tokens, 需要resize input embedding 和output embedding
     # model.resize_token_embeddings(len(tokenizer), pad_to_multiple_of=32)
 
-    accelerator.print("Model load_in_4bit: ", args.quantization == "4bit")
+    model.gradient_checkpointing_enable()
 
-    if args.peft_type == "lora":
-        model.gradient_checkpointing_enable()
-    elif args.peft_type == "qlora":
-        # prepare base model for 4bit model(cast non-4bit layers to fp32)
-        model = prepare_model_for_kbit_training(model)
-        # logging.info(f"device map: {model.hf_device_map}")
-    else:
-        model.gradient_checkpointing_enable()
-        if args.saving_limit is None or not isinstance(args.saving_limit, int) or args.saving_limit < 1:
-            # saving_limit is set automatically if needed
-            args.saving_limit = 2
-            accelerator.print(
-                "[WARNING]saving_limit must be a integer greater than 1 in Full-Parameters Training, we set it to 2"
-            )
-
-    # Load PeftModel from a previous save or create a new PeftModel
-    if args.peft_type:
-        if not args.resume_from_checkpoint:
-            model = get_peft_model(model, peft_config)
-        else:
-            accelerator.print(f"[INFO] Resumed from checkpoint: {args.resume_from_checkpoint}")
-            # accelerator.load_state(args.resume_from_checkpoint)
-            model = PeftModel.from_pretrained(model, args.resume_from_checkpoint, is_trainable=True)
-
-        model.print_trainable_parameters()
+    if args.saving_limit is None or not isinstance(args.saving_limit, int) or args.saving_limit < 1:
+        # saving_limit is set automatically if needed
+        args.saving_limit = 2
+        accelerator.print(
+            "[WARNING]saving_limit must be a integer greater than 1 in Full-Parameters Training, we set it to 2"
+        )
 
     t2 = time.time()
     if accelerator.is_main_process:
@@ -478,10 +404,6 @@ def main():
         adam_optimizer = torch.optim.AdamW
     elif accelerator.distributed_type == DistributedType.FSDP:
         accelerator.print("DISTRIBUTED TRAINING USING FSDP")
-        if args.peft_type and getattr(accelerator.state, "fsdp_plugin", None) is not None:
-            from peft.utils.other import fsdp_auto_wrap_policy
-
-            accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)
         model = accelerator.prepare(model)
         adam_optimizer = torch.optim.AdamW
     else:
@@ -493,6 +415,8 @@ def main():
         lr=args.learning_rate,
         betas=(0.9, 0.999),
     )
+    # for group in optimizer.param_groups:
+    #     group.setdefault("initial_lr", group["lr"])
 
     # Scheduler and math around the number of training steps.
     overrode_max_train_steps = False
@@ -550,7 +474,7 @@ def main():
     elif getattr(accelerator.state, "fsdp_plugin", None):
         accelerator.print(f"FSDP plugin: {accelerator.state.fsdp_plugin}")
 
-    trainer = MftTrainer(
+    trainer = MptTrainer(
         accelerator=accelerator,
         model=model,
         model_config=model_config,
@@ -564,7 +488,6 @@ def main():
         args=args,
     )
     trainer.accelerate_train()
-    logger.info(f"Training Finished!")
 
 
 if __name__ == "__main__":

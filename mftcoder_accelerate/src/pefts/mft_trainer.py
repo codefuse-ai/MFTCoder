@@ -1,10 +1,10 @@
 """
-# @author Chaoyu Chen
+# @author qumu
 # @date 2024/4/12
 # @module trainer.py
 
 Accelerate + DeepSpeed/FSDP 
-QLoRA/LoRA/Full + SFT/MFT/MPT
+QLoRA/LoRA/Full + SFT/MFT
 
 Trainer
 """
@@ -33,7 +33,7 @@ from transformers import set_seed
 
 # sys.path.append("..")
 from utils.common_utils import generate_task_id, TASK2ID, ID2TASK
-from utils.loss_utils import loss_func_mft, SelfpacedStatus, load_balancing_loss_func
+from utils.loss_utils import loss_func_mft, CoBaStatus, load_balancing_loss_func
 
 logger = get_logger(__name__)
 
@@ -208,7 +208,7 @@ class MftTrainer:
                 )
             else:
                 self.tokenizer.save_pretrained(output_dir)
-        
+
             sf = os.path.join(output_dir, "model.safetensors")
             index_file = os.path.join(output_dir, "model.safetensors.index.json")
             if os.path.isfile(sf) and os.path.isfile(index_file):
@@ -219,8 +219,6 @@ class MftTrainer:
             latest = {
                 "latest_ckpt": output_dir,
                 "lr": self.optimizer.param_groups[0]["lr"],
-                # 1 step back because ckping is after schuduler.step()
-                # "scheduler_last_ep": self.lr_scheduler.state_dict().get("last_epoch", 0) - 1,
             }
             with open(os.path.join(self.args.output_dir, "latest"), "w") as f:
                 json.dump(latest, f, indent=2)
@@ -237,7 +235,7 @@ class MftTrainer:
         reduce_task_loss,
         reduce_task_exist,
         completed_steps,
-        selfpaced_status=None,
+        coba_status=None,
     ):
         """
         gather reduce_loss and reduce_task_loss from all N devices.
@@ -261,27 +259,27 @@ class MftTrainer:
             f"[lr={self.lr_scheduler.get_lr()[0]:.4e}, {self.optimizer.param_groups[0]['lr']:.4e}]",
             main_process_only=True,
         )
-        if selfpaced_status is not None:
-            if completed_steps > selfpaced_status.selfpaced_history_length:
-                selfpaced_status.log_per_task_weight = selfpaced_status.log_per_task_weight / torch.sum(
-                    selfpaced_status.log_per_task_weight
+        if coba_status is not None:
+            if completed_steps > coba_status.coba_warmup_steps:
+                coba_status.log_per_task_weight = coba_status.log_per_task_weight / torch.sum(
+                    coba_status.log_per_task_weight
                 )
             else:
-                selfpaced_status.log_per_task_weight = torch.ones(len(ID2TASK)) / len(ID2TASK)
+                coba_status.log_per_task_weight = torch.ones(len(ID2TASK)) / len(ID2TASK)
             logger.info(
-                f"[TRAIN][per_task_train_weight={selfpaced_status.log_per_task_weight}]", main_process_only=True
+                f"[TRAIN][per_task_train_weight={coba_status.log_per_task_weight}]", main_process_only=True
             )
         train_log_dict = {"Loss/train": train_loss}
         for i in range(len(ID2TASK)):
             train_log_dict[f"{ID2TASK[i]}_loss/train"] = train_task_loss[i]
-            if selfpaced_status is not None:
-                train_log_dict[f"{ID2TASK[i]}_selfpaced_weight/train"] = selfpaced_status.log_per_task_weight[i].item()
+            if coba_status is not None:
+                train_log_dict[f"{ID2TASK[i]}_coba_weight/train"] = coba_status.log_per_task_weight[i].item()
 
         if self.accelerator.is_main_process:
             write_tensorboard(self.summary_writer, train_log_dict, completed_steps)
 
-        if selfpaced_status is not None:
-            selfpaced_status.log_per_task_weight = torch.zeros(len(ID2TASK))
+        if coba_status is not None:
+            coba_status.log_per_task_weight = torch.zeros(len(ID2TASK))
 
     def accelerate_evaluate(
         self,
@@ -412,24 +410,35 @@ class MftTrainer:
         reduce_task_exist = torch.zeros(len(ID2TASK)).to(self.model.device)
         per_task_weight = self.args.task_weights
 
-        if self.args.weighted_loss_mode == "selfpaced":
-            selfpaced_status = SelfpacedStatus(
-                self.args.selfpaced_scale_factor,
-                self.args.selfpaced_interval,
-                self.args.selfpaced_history_length,
-                self.args.selfpaced_sample_valid_num,
+        if self.args.weighted_loss_mode == "coba":
+            self.model.eval()
+            eval_loss, eval_task_loss, _, _, _ = self.accelerate_evaluate(
+                completed_steps,
+                0,
+                min_eval_loss,
+                stall_num,
+                best_step,
+            )
+            self.model.train()
+            coba_status = CoBaStatus(
+                self.args.coba_warmup_steps,
+                self.args.coba_history_length,
+                self.args.coba_tau,
+                self.args.coba_update_interval,
+                self.args.coba_sample_valid_num,
                 self.valid_dataloader,
             )
-            selfpaced_status.sample_valid_batch(self.model, completed_steps)
-            selfpaced_status.valid_iterator = iter(selfpaced_status.valid_dataloader)
+            coba_status.valid_task_loss_begining = eval_task_loss.clone().to(self.model.device)
+            coba_status.sample_valid_batch(self.model, completed_steps)
+            logger.info(f"valid_task_loss: {coba_status.valid_task_loss_accumulated}", main_process_only=True)
         else:
-            selfpaced_status = None
+            coba_status = None
 
         # Training Loop!
         for epoch in range(starting_epoch, self.args.num_train_epochs):
-            # set_epoch 
+            # set_epoch
             # self.train_dataloader.set_epoch(epoch)
-            
+
             # if we early stop by some ckpts not converging
             if self.args.early_stopping and stall_num == self.args.early_stopping_stall_num:
                 break
@@ -459,13 +468,15 @@ class MftTrainer:
                     )
 
                     if (
-                        self.args.weighted_loss_mode == "selfpaced"
-                        and step % self.args.gradient_accumulation_steps == 0
-                        and completed_steps % self.args.selfpaced_interval == 0
-                        and completed_steps >= self.args.selfpaced_history_length
+                        self.args.weighted_loss_mode == "coba"
+                        and self.accelerator.sync_gradients
+                        and completed_steps % self.args.coba_update_interval == 0
+                        and completed_steps >= self.args.coba_warmup_steps
                     ):
-                        per_task_weight = selfpaced_status.compute_per_task_weight(completed_steps=completed_steps)
-                        selfpaced_status.log_per_task_weight += per_task_weight
+                        with torch.no_grad():
+                            per_task_weight = coba_status.compute_per_task_weight(completed_steps=completed_steps)
+                            coba_status.log_per_task_weight += per_task_weight
+                            # logger.info(f'per_task_weight: {per_task_weight}', main_process_only=True)
 
                     # loss
                     loss, task_loss, _ = loss_func_mft(
@@ -520,11 +531,12 @@ class MftTrainer:
                     # If the accelerator has performed an optimization step behind the scenes, thus a completed_step done.
                     if self.accelerator.sync_gradients:
                         if (
-                            self.args.weighted_loss_mode == "selfpaced"
-                            and completed_steps % self.args.selfpaced_interval == 0
+                            self.args.weighted_loss_mode == "coba"
+                            and completed_steps % self.args.coba_update_interval == 0
                             and completed_steps >= 1
                         ):
-                            selfpaced_status.sample_valid_batch(self.model, completed_steps)
+                            coba_status.sample_valid_batch(self.model, completed_steps)
+                            # logger.info(f"valid_task_loss: {coba_status.valid_task_loss_accumulated}", main_process_only=True)
 
                         # progress_bar.update(1)
                         completed_steps += 1
@@ -538,7 +550,7 @@ class MftTrainer:
                                 reduce_task_loss,
                                 reduce_task_exist,
                                 completed_steps,
-                                selfpaced_status,
+                                coba_status,
                             )
                             # reset reduce_loss
                             reduce_loss = torch.tensor(0.0).to(self.model.device)
@@ -554,7 +566,7 @@ class MftTrainer:
                             self.accelerate_saving_checkpoint(output_dir, completed_steps)
 
                         # steps evaluation
-                        if completed_steps % self.args.evaluation_steps == 0:
+                        if completed_steps % self.args.evaluation_steps == 0 and self.valid_dataloader:
                             self.model.eval()
                             eval_loss, eval_task_loss, min_eval_loss, stall_num, best_step = self.accelerate_evaluate(
                                 completed_steps,

@@ -2,11 +2,14 @@
 # @author Chaoyu Chen
 # @date 2023/8/18
 
+Load dataset in a distributed way.
 """
+
 import os
 import json
 import math
 import time
+import glob
 import numpy as np
 import torch
 from functools import partial
@@ -192,18 +195,21 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
 
     # 不同数据集在不同文件夹下
     for dataset_index in range(len(data_prefixes)):
-        files = os.listdir(data_prefixes[dataset_index])
+        # files = os.listdir(data_prefixes[dataset_index])
+        # get all jsonl files and corresponding reading handler
+        if data_prefixes[dataset_index].endswith(".jsonl"):
+            files = [data_prefixes[dataset_index]]
+        else:
+            files = glob.glob(os.path.join(data_prefixes[dataset_index], "**/*.jsonl"), recursive=True)
+
         cur_dataset_input_ids = []
         cur_dataset_loss_mask = []
         # support multiple jsonl files under task dir
-        for file in files:
-            file_name = data_prefixes[dataset_index] + "/" + file
-            if os.path.isdir(file_name):
-                continue
+        for file_name in files:
             fin = open(file_name, "r")
             print(f"[Global Rank {global_rank}] open file {file_name}")
 
-            if args.padding_mode == "padding" or args.padding_mode == "pack":
+            if args.padding_mode == "padding" or args.padding_mode == "pack" or args.padding_mode == "concat":
                 for i, line in enumerate(fin):
                     # pre-sharding
                     if shard_data and i % world_size != global_rank:
@@ -254,7 +260,8 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
         cur_train_dataset = {"input_ids": cur_train_input_ids, "loss_mask": cur_train_loss_mask}
         cur_valid_dataset = {"input_ids": cur_valid_input_ids, "loss_mask": cur_valid_loss_mask}
         print(f"[Global Rank {global_rank}]shape of cur train dataset: {cur_train_dataset['input_ids'].shape}")
-        print(f"[Global Rank {global_rank}]shape of cur valid dataset: {cur_valid_dataset['input_ids'].shape}")
+        if local_valid_num > 0:
+            print(f"[Global Rank {global_rank}]shape of cur valid dataset: {cur_valid_dataset['input_ids'].shape}")
 
         cur_train_ds = GPT2FromRawDataset(
             "train",
@@ -264,32 +271,32 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
             weighted_loss_mode=args.weighted_loss_mode,
             ds_weight=splits[0],
         )
-        cur_valid_ds = GPT2FromRawDataset(
-            "valid",
-            data_prefixes[dataset_index],
-            cur_valid_dataset,
-            args.seq_length,
-            weighted_loss_mode=args.weighted_loss_mode,
-            ds_weight=splits[1],
-        )
-
         all_train_datasets.append(cur_train_ds)
-        all_valid_datasets.append(cur_valid_ds)
         all_train_datasets_length.append(len(cur_train_ds))
-        all_valid_datasets_length.append(len(cur_valid_ds))
+        if local_valid_num > 0:
+            cur_valid_ds = GPT2FromRawDataset(
+                "valid",
+                data_prefixes[dataset_index],
+                cur_valid_dataset,
+                args.seq_length,
+                weighted_loss_mode=args.weighted_loss_mode,
+                ds_weight=splits[1],
+            )
+            all_valid_datasets.append(cur_valid_ds)
+            all_valid_datasets_length.append(len(cur_valid_ds))
+        else:
+            cur_valid_ds = None
 
     print(f"[Global Rank {global_rank}]num tokens: {num_tokens}")
     print(f"[Global Rank {global_rank}]effective token rate: {effective_token_rate}")
 
     num_tokens = []
     ds_fn = partial(ds_weights_by_num_docs_sft)
-    train_loss_weights, valid_loss_weights = (
-        ds_fn(all_train_datasets_length),
-        ds_fn(all_valid_datasets_length),
-    )
-
+    train_loss_weights = ds_fn(all_train_datasets_length)
     print(f"> train loss weights in rank {global_rank}: {train_loss_weights}")
-    print(f"> valid loss weights in rank {global_rank}: {valid_loss_weights}")
+    if all_valid_datasets_length:
+        valid_loss_weights = ds_fn(all_valid_datasets_length)
+        print(f"> valid loss weights in rank {global_rank}: {valid_loss_weights}")
 
     factor = 1
     # calcualte common factor based on token cnt and total sample cnt
@@ -299,9 +306,10 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
     print(f"> common denomination factor for CE loss in rank {global_rank}: {factor}")
 
     train_sample_weights = [x / sum(all_train_datasets_length) for x in all_train_datasets_length]
-    valid_sample_weights = [x / sum(all_valid_datasets_length) for x in all_valid_datasets_length]
     print(f"> train sample weights in rank {global_rank}: {train_sample_weights}")
-    print(f"> valid sample weights in rank {global_rank}: {valid_sample_weights}")
+    if all_valid_datasets_length:
+        valid_sample_weights = [x / sum(all_valid_datasets_length) for x in all_valid_datasets_length]
+        print(f"> valid sample weights in rank {global_rank}: {valid_sample_weights}")
 
     # recompute global_train_num and global_valid_num
 
@@ -312,22 +320,23 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
     global_train_num_samples_tensor = global_train_num_samples_tensor.to(device)
     torch.distributed.all_reduce(global_train_num_samples_tensor, op=torch.distributed.ReduceOp.SUM)
     global_train_num = global_train_num_samples_tensor.item()
-
-    global_valid_num_samples_tensor = torch.tensor(local_valid_num, dtype=torch.int32)
-    global_valid_num_samples_tensor = global_valid_num_samples_tensor.to(device)
-    torch.distributed.all_reduce(global_valid_num_samples_tensor, op=torch.distributed.ReduceOp.SUM)
-    global_valid_num = global_valid_num_samples_tensor.item()
     print(f"> global train num in rank {global_rank}: {global_train_num}")
-    print(f"> global valid num in rank {global_rank}: {global_valid_num}")
+
+    if local_valid_num > 0:
+        global_valid_num_samples_tensor = torch.tensor(local_valid_num, dtype=torch.int32)
+        global_valid_num_samples_tensor = global_valid_num_samples_tensor.to(device)
+        torch.distributed.all_reduce(global_valid_num_samples_tensor, op=torch.distributed.ReduceOp.SUM)
+        global_valid_num = global_valid_num_samples_tensor.item()
+        print(f"> global valid num in rank {global_rank}: {global_valid_num}")
 
     torch.distributed.barrier()
 
-    for i in range(len(all_train_datasets)):
-        print(
-            f"loss weight of train dataset {i} before update in rank {global_rank}: {all_train_datasets[i].ds_weight}"
-        )
     blending_train_dataset = None
     if all_train_datasets:
+        for i in range(len(all_train_datasets)):
+            print(
+                f"loss weight of train dataset {i} before update in rank {global_rank}: {all_train_datasets[i].ds_weight}"
+            )
         args.do_train = True
         for i in range(len(all_train_datasets)):
             all_train_datasets[i].update_ds_weight(train_loss_weights[i] / factor)
@@ -338,12 +347,12 @@ def load_dataset_from_jsonl(args, shard_data=False, world_size=1, global_rank=0,
             all_train_datasets, train_sample_weights, global_train_num, local_train_num
         )
 
-    for i in range(len(all_valid_datasets)):
-        print(
-            f"loss weight of valid dataset {i} before update in rank {global_rank}: {all_valid_datasets[i].ds_weight}"
-        )
     blending_valid_dataset = None
     if all_valid_datasets:
+        for i in range(len(all_valid_datasets)):
+            print(
+                f"loss weight of valid dataset {i} before update in rank {global_rank}: {all_valid_datasets[i].ds_weight}"
+            )
         args.do_valid = True
         for i in range(len(all_valid_datasets)):
             all_valid_datasets[i].update_ds_weight(valid_loss_weights[i] / factor)

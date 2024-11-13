@@ -41,7 +41,7 @@ class GPT2PromptDataset(torch.utils.data.Dataset):
         use_shared_fs=True,
         weighted_loss_mode=None,
         ds_weight=1.0,
-        train_mode='sft',
+        train_mode="sft",
     ):
 
         self.name = name
@@ -50,9 +50,9 @@ class GPT2PromptDataset(torch.utils.data.Dataset):
 
         self.weighted_loss_mode = weighted_loss_mode
         self.ds_weight = ds_weight
-        
-        self.task_name = data_prefix.split('/')[-1]
-        
+
+        self.task_name = data_prefix.split("/")[-1]
+
         self.task_id = TASK2ID[self.task_name]
 
         # Checks
@@ -114,14 +114,10 @@ class GPT2PromptDataset(torch.utils.data.Dataset):
 
             else:
                 # Otherwise, get the rest of the initial document.
-                input_ids_list = [
-                    self.input_ids_indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)
-                ]
+                input_ids_list = [self.input_ids_indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)]
 
                 if self.loss_mask_indexed_dataset is not None:
-                    loss_mask_list = [
-                        self.loss_mask_indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)
-                    ]
+                    loss_mask_list = [self.loss_mask_indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)]
                 else:
                     loss_mask_list = []
 
@@ -133,16 +129,12 @@ class GPT2PromptDataset(torch.utils.data.Dataset):
 
                 # And finally add the relevant portion of last document.
                 input_ids_list.append(
-                    self.input_ids_indexed_dataset.get(
-                        self.doc_idx[doc_index_l], length=offset_l + 1
-                    )
+                    self.input_ids_indexed_dataset.get(self.doc_idx[doc_index_l], length=offset_l + 1)
                 )
 
                 if self.loss_mask_indexed_dataset is not None:
                     loss_mask_list.append(
-                        self.loss_mask_indexed_dataset.get(
-                            self.doc_idx[doc_index_l], length=offset_l + 1
-                        )
+                        self.loss_mask_indexed_dataset.get(self.doc_idx[doc_index_l], length=offset_l + 1)
                     )
 
                 input_ids = np.concatenate(input_ids_list)
@@ -246,18 +238,12 @@ class GPT2Dataset(torch.utils.data.Dataset):
                 )
             else:
                 # Otherwise, get the rest of the initial document.
-                sample_list = [
-                    self.indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)
-                ]
+                sample_list = [self.indexed_dataset.get(self.doc_idx[doc_index_f], offset=offset_f)]
                 # Loop over all in between documents and add the entire document.
                 for i in range(doc_index_f + 1, doc_index_l):
                     sample_list.append(self.indexed_dataset.get(self.doc_idx[i]))
                 # And finally add the relevant portion of last document.
-                sample_list.append(
-                    self.indexed_dataset.get(
-                        self.doc_idx[doc_index_l], length=offset_l + 1
-                    )
-                )
+                sample_list.append(self.indexed_dataset.get(self.doc_idx[doc_index_l], length=offset_l + 1))
                 sample = np.concatenate(sample_list)
 
             return {"text": np.array(sample, dtype=np.int64)}
@@ -313,10 +299,7 @@ def _build_index_mappings(
             or (not os.path.isfile(sample_idx_filename))
             or (not os.path.isfile(shuffle_idx_filename))
         ):
-            print_rank_0(
-                " > WARNING: could not find index map files, building "
-                "the indices on rank 0 ..."
-            )
+            print_rank_0(" > WARNING: could not find index map files, building " "the indices on rank 0 ...")
             # doc-idx.
             start_time = time.time()
             doc_idx = _build_doc_idx(documents, num_epochs, np_rng)
@@ -338,13 +321,9 @@ def _build_index_mappings(
             # 我理解这里的num_samples应该是和入参的num_samples重名，这里只是为了计算构建所有索引的长度，从而决定是用int64还是int32
             num_samples = (num_epochs * tokens_per_epoch - 1) / seq_length
             if 2 * (num_samples + 1) < np.iinfo(np.int32).max:
-                sample_idx = helpers.build_sample_idx_int32(
-                    sizes, doc_idx, seq_length, num_epochs, tokens_per_epoch
-                )
+                sample_idx = helpers.build_sample_idx_int32(sizes, doc_idx, seq_length, num_epochs, tokens_per_epoch)
             else:
-                sample_idx = helpers.build_sample_idx_int64(
-                    sizes, doc_idx, seq_length, num_epochs, tokens_per_epoch
-                )
+                sample_idx = helpers.build_sample_idx_int64(sizes, doc_idx, seq_length, num_epochs, tokens_per_epoch)
             np.save(sample_idx_filename, sample_idx, allow_pickle=True)
             print_rank_0(
                 " > elapsed time to build and save sample-idx mapping "
@@ -360,7 +339,7 @@ def _build_index_mappings(
                 " > elapsed time to build and save shuffle-idx mapping"
                 " (seconds): {:4f}".format(time.time() - start_time)
             )
-    
+
     torch.distributed.barrier()  # TODO: model parallel
 
     # This should be a barrier but nccl barrier assumes
@@ -370,7 +349,7 @@ def _build_index_mappings(
     # torch.distributed.all_reduce(counts)
     # torch.distributed.all_reduce(counts, group=mpu.get_io_parallel_group())
     # assert counts[0].item() == torch.distributed.get_world_size(
-        # group=mpu.get_io_parallel_group()
+    # group=mpu.get_io_parallel_group()
     # )
 
     # Load mappings.
@@ -381,9 +360,7 @@ def _build_index_mappings(
     sample_idx = np.load(sample_idx_filename, allow_pickle=True, mmap_mode="r")
     print_rank_0(" > loading shuffle-idx mapping from {}".format(shuffle_idx_filename))
     shuffle_idx = np.load(shuffle_idx_filename, allow_pickle=True, mmap_mode="r")
-    print_rank_0(
-        "    loaded indexed file in {:3.3f} seconds".format(time.time() - start_time)
-    )
+    print_rank_0("    loaded indexed file in {:3.3f} seconds".format(time.time() - start_time))
     print_rank_0("    total number of samples: {}".format(sample_idx.shape[0]))
     print_rank_0("    total number of epochs: {}".format(num_epochs))
 

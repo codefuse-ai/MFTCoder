@@ -7,24 +7,30 @@
 [**中文**] [[English]](README.md)
 
 ## 1. 更新
+🔥 MFTCoder-accelerate 增加了xxpo模块，支持dpo训练。
+
+🔥 MFTCoder-accelerate 增加了mpt模块，借助offline_tokenization模块，支持全量参数加训。
+
+🔥 MFTCoder-accelerate 增加了CoBa Loss的最新实现（原selfpaced Loss）, 让收敛均衡更进一步。
+
 🔥 MFTCoder-accelerate 最新支持的训练模式包括: QLoRA/LoRA + DeepSpeed ZeRO2， QLoRA + DeepSpeed ZeRO3, 全量 + DeepSpeed ZeRO3, QLoRA + FSDP, 全量 + FSDP。
 
-🔥 MFTCoder-accelerate 新增支持QLoRA + DeepSpeed ZeRO3， 支持QLoRA + FSDP, 可以训练更大的模型;
+🔥 MFTCoder-accelerate 新增支持QLoRA + DeepSpeed ZeRO3， 支持QLoRA + FSDP, 可以训练更大的模型。
 
-🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA;
+🔥 MFTCoder-accelerate 新增支持accelerate + FSDP框架， 支持全量微调和LoRA。
 
-🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3；
+🔥 MFTCoder-accelerate 支持最新更多主流开源模型: mistral, mixtral-8x7b(Mixture of Experts), deepseek, chatglm3。
 
-🔥 MFTCoder-accelerate 新增self-paced Loss, 用于收敛均衡；
+🔥 MFTCoder-accelerate 新增self-paced Loss, 用于收敛均衡。
 
-🔥 MFTCoder-accelerate 支持使用accelerate + DeepSpeed框架下支持 全量参数/QLoRA/LoRA微调； 
+🔥 MFTCoder-accelerate 支持使用accelerate + DeepSpeed框架下支持 全量参数/QLoRA/LoRA微调。
 
-🔥 MFTCoder-accelerate 在训练中支持了多任务微调MFT， 可以同时平衡多个任务的训练，训练的模型支持多任务推理； 
+🔥 MFTCoder-accelerate 在训练中支持了多任务微调MFT， 可以同时平衡多个任务的训练，训练的模型支持多任务推理。
 
-🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等
+🔥 MFTCoder-accelerate 在训练中支持多种模型基座： codellama, llama2, llama, starcoder, codegeex2, chatglm2, qwen等。
 
 ## 2. 数据格式
-### 2.1 训练数据格式
+### 2.1 MFT训练数据格式
 训练数据为jsonl格式，每一行的数据格式如下，其中chat_rounds字段是必需的，可以根据实际需求添加或删除其他字段。
 可以参考项目中的xxx.jsonl文件。
 ```json
@@ -80,6 +86,57 @@
 """
 ```
 
+### 2.3 DPO训练数据格式
+训练数据为jsonl格式，每一行的数据格式如下，其中chosen字段和rejected字段分别代表偏好对齐中的```chosen```和```rejected```，其内部依然是MFT的chatml格式，并且只有最后一轮对话的bot content不同。
+```json
+{
+    "chosen":[
+        {
+            "role": "system",
+            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题"
+        },
+        {
+            "role": "human",
+            "content": "写一个快速排序"
+        },
+        {
+            "role": "bot",
+            "content": "以下是一个快速排序算法xxxxxx"
+        },
+        {
+            "role": "human",
+            "content": "解释一下这段代码"
+        },
+        {
+            "role": "bot",
+            "content": "好的，这段代码xxx"
+        }
+    ],
+    "rejected":[
+        {
+            "role": "system",
+            "content": "你是一个智能代码助手，可以回复用户与代码相关的问题"
+        },
+        {
+            "role": "human",
+            "content": "写一个快速排序"
+        },
+        {
+            "role": "bot",
+            "content": "以下是一个快速排序算法xxxxxx"
+        },
+        {
+            "role": "human",
+            "content": "解释一下这段代码"
+        },
+        {
+            "role": "bot",
+            "content": "对不起，我不会"
+        }
+    ]
+}
+```
+
 
 ## 3. 模型训练
 目前支持全量参数(Full-parameters)指令微调、QLoRA指令微调，LoRA指令微调。
@@ -104,6 +161,12 @@ mftcoder_accelerate
           |
           *pefts*
           |
+          *xxpo*
+          |
+          *mpt*
+          |
+          *offline_tokenization*
+          |
           tokenizer
           |
           utils
@@ -112,7 +175,11 @@ mftcoder_accelerate
 ```
 我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
 
-训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+MFT训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+
+DPO/ORPO训练入口文件是```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```
+
+MPT(全量加训)训练入口文件是```mftcoder_accelerate/src/mpt/mpt_accelerate.py```. MPT加训需要提前做好数据的tokenziation，通过```mftcoder_accelerate/src/run_offline_tokenization.sh```，你可以将数据通过cpu进行离线的tokenization。这和MFT/DPO中使用的在线tokenziation不同。
 
 参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
 
@@ -124,7 +191,7 @@ cd mftcoder_accelerate/src
 
 
 ### 3.1 数据tokenization
-训练时，我们将多轮对话拼接成如下格式（也是上文中的推理数据格式），然后进行tokenize。
+MFT/DPO训练时，我们将多轮对话拼接成如下格式（也是上文中的推理数据格式），然后进行tokenize。
 其中，默认情况下：
 
 ```<s>human\n```作为human/user的起始符，```<s>bot\n```作为bot/assistant的起始符，```{EOS_TOKEN}``` 表示eos_token。
@@ -217,6 +284,18 @@ _**训练需要的参数配置在```configs/*_train_config```中，主要参数�
 - **saving_limit**：整数，ckpt存储数量上限， 全量训练必须设置。默认null即不限制数量。
 - **role_markers**: null，即使用{"system": "\<s\>system\n", "user": "\<s\>human\n", "assistant": "\<s\>bot\n"}。 你可以自定义 "system", "user" and "assistant"的模板， 用于定制自己的问答或者对话模板，比如 {"system": "### System:\n", "user": "### Instruction:\n", "assistant": "### Response:\n"}
 
+#### CoBa相关参数配置
+- **coba_warmup_steps**: CoBa的warm-up步数。在warm-up期间，各任务权重相等，warm-up之后，开始动态调整权重。一般建议设置为与valid batch总数量相近即可。
+- **coba_history_length**: CoBa维护的valid loss的历史窗口长度，用于拟合当前步收敛斜率。一般建议设置为2倍**coba_warmup_steps**至5倍**coba_warmup_steps**之间。一般该值越大，权重的变化幅度就会越小。
+- **coba_tau**: 发散因子（DF）的温度系数。一般设置为5即可。
+- **coba_update_interval**: CoBa更新权重的频率。一般设置为1，即每一步都对权重做更新。
+- **coba_sample_valid_num**: CoBa每一步要取的valid batch数。理论上当该值等于valid batch总数量时，拟合出的收敛斜率最逼近真实情况，但考虑到计算需求，建议设置为1。
+
+#### DPO 相关参数配置
+- **xxpo**: 偏好对齐方法, "dpo" 或者 "orpo"。
+- **beta**: DPO beta, beta 越小，允许对齐后的dpo模型与ref模型的距离越远。
+- **rpo_alpha**: 加到dop损失的```chosen``` NLL损失的系数，0的话就是原始DPO。
+- 
 ## 4. 模型使用
 
 ### 4.1 权重合并

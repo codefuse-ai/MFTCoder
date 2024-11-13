@@ -32,10 +32,7 @@ def get_indexed_dataset_(data_prefix, data_impl, skip_warmup):
 
     start_time = time.time()
     indexed_dataset = make_indexed_dataset(data_prefix, data_impl, skip_warmup)
-    print_rank_0(
-        " > finished creating indexed dataset in {:4f} "
-        "seconds".format(time.time() - start_time)
-    )
+    print_rank_0(" > finished creating indexed dataset in {:4f} " "seconds".format(time.time() - start_time))
     print_rank_0("    number of documents: {}".format(indexed_dataset.sizes.shape[0]))
 
     return indexed_dataset
@@ -53,20 +50,22 @@ def build_train_valid_test_datasets(
     build_index_mappings=True,
     shuffle_before_split=False,
     weighted_loss_mode=None,
-    ds_weights=[1., 1., 1.],
-    train_mode='sft',
+    ds_weights=[1.0, 1.0, 1.0],
+    train_mode="sft",
 ):
     """Build train, valid, and test datasets."""
 
     # Indexed dataset.
-    assert os.path.exists(data_prefix + "_input_ids.bin"), f"Input tokens datafile not found: {data_prefix}_input_ids.bin"
+    assert os.path.exists(
+        data_prefix + "_input_ids.bin"
+    ), f"Input tokens datafile not found: {data_prefix}_input_ids.bin"
 
     # Indexed dataset.
     input_ids_indexed_dataset = get_indexed_dataset_(data_prefix + "_input_ids", data_impl, skip_warmup)
-    if train_mode == 'sft':
+    if train_mode == "sft":
         loss_mask_indexed_dataset = get_indexed_dataset_(data_prefix + "_loss_mask", data_impl, skip_warmup)
     else:
-        print(f'pretrain mode, loss mask is ones')
+        print(f"pretrain mode, loss mask is ones")
         loss_mask_indexed_dataset = None
 
     total_num_of_documents = input_ids_indexed_dataset.sizes.shape[0]
@@ -79,9 +78,7 @@ def build_train_valid_test_datasets(
         print_rank_0("    {}:".format(name))
         print_rank_0(
             "     document indices in [{}, {}) total of {} "
-            "documents".format(
-                splits[index], splits[index + 1], splits[index + 1] - splits[index]
-            )
+            "documents".format(splits[index], splits[index + 1], splits[index + 1] - splits[index])
         )
 
     print_split_stats("train", 0)
@@ -100,11 +97,9 @@ def build_train_valid_test_datasets(
         dataset = None
         if splits[index + 1] > splits[index]:
             if shuffle_before_split:
-                documents = shuffle_doc_index[splits[index]:splits[index + 1]]
+                documents = shuffle_doc_index[splits[index] : splits[index + 1]]
             else:
-                documents = np.arange(
-                    start=splits[index], stop=splits[index + 1], step=1, dtype=np.int32
-                )
+                documents = np.arange(start=splits[index], stop=splits[index + 1], step=1, dtype=np.int32)
 
             dataset = GPT2PromptDataset(
                 name,
@@ -130,11 +125,13 @@ def build_train_valid_test_datasets(
     return train_dataset, valid_dataset, test_dataset, total_num_of_documents
 
 
-def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples, use_shared_fs=True, data_impl="mmap", mmap_warmup=False):
+def build_multiple_train_valid_test_datasets(
+    args, train_valid_test_num_samples, use_shared_fs=True, data_impl="mmap", mmap_warmup=False
+):
     """Build multiple train, valid, and test datasets."""
-    data_prefixes = list(args.data_paths[1:-1].split(','))
+    data_prefixes = list(args.data_paths[1:-1].split(","))
 
-    data_weights = list(map(float, args.data_weights[1:-1].split(',')))
+    data_weights = list(map(float, args.data_weights[1:-1].split(",")))
     print("data weights: ")
     print(data_weights)
     use_shared_fs = use_shared_fs
@@ -143,7 +140,7 @@ def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples,
     seq_length = args.seq_length
     # seq_length = args.block_size
     seed = args.seed
-    skip_warmup = (not mmap_warmup)
+    skip_warmup = not mmap_warmup
     weight_by_num_documents = args.weight_by_num_documents
     shuffle_before_split = args.shuffle_before_split
     weighted_loss_mode = args.weighted_loss_mode
@@ -183,9 +180,7 @@ def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples,
     factor = 1
     if weight_by_num_documents:
         # gets the number of documents in each data path
-        get_num_docs_list = lambda datasets: [
-            dataset.input_ids_indexed_dataset.sizes.shape[0] for dataset in datasets
-        ]
+        get_num_docs_list = lambda datasets: [dataset.input_ids_indexed_dataset.sizes.shape[0] for dataset in datasets]
         train_num_docs, valid_num_docs, test_num_docs = (
             get_num_docs_list(train_datasets),
             get_num_docs_list(valid_datasets),
@@ -201,7 +196,7 @@ def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples,
         )
         assert sum(train_weights) != 0.0, "found train weights to be 0.0"
         assert sum(valid_weights) != 0.0, "found valid weights to be 0.0"
-        
+
         train_weights, train_num_samples = get_normalized_weights_and_num_samples(
             train_weights, train_valid_test_num_samples[0]
         )
@@ -265,7 +260,7 @@ def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples,
         if num_tokens:
             factor = sum(num_tokens) / (sum(total_sample_cnt) * args.seq_length)
             factor /= sum([1.0 / w for w in train_ds_weights]) / len(train_ds_weights)
-            
+
     print_rank_0(f"> common denomination factor for CE loss: {factor}")
 
     # Blend.
@@ -274,7 +269,7 @@ def build_multiple_train_valid_test_datasets(args, train_valid_test_num_samples,
         i = 0
         for ds in train_datasets:
             ds.update_ds_weight(ds.ds_weight / factor)
-            print(f'loss weight of dataset {i} after update: {ds.ds_weight}')
+            print(f"loss weight of dataset {i} after update: {ds.ds_weight}")
             i += 1
         blending_train_dataset = BlendableDataset(train_datasets, train_weights)
     blending_valid_dataset = None
@@ -318,9 +313,7 @@ def get_train_valid_test_split_(splits_string, size):
     return splits_index
 
 
-def get_normalized_weights_and_num_samples(
-    weights: List[float], num_samples: int
-) -> Tuple[List[float], List[int]]:
+def get_normalized_weights_and_num_samples(weights: List[float], num_samples: int) -> Tuple[List[float], List[int]]:
     # Normalize weights
     weight_sum = sum(weights)
     assert weight_sum > 0.0
@@ -346,12 +339,7 @@ def get_datasets_normalized_weights_and_num_samples(
     # samples left to feed to the network.
     weighted_num_samples = []
     for weight in weights:
-        weighted_num_samples.append(
-            [
-                int(math.ceil(val * weight * 1.005))
-                for val in num_samples
-            ]
-        )
+        weighted_num_samples.append([int(math.ceil(val * weight * 1.005)) for val in num_samples])
     return weights, weighted_num_samples
 
 

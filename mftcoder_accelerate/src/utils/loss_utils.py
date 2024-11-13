@@ -67,14 +67,14 @@ def loss_func_mft(outputs, labels, task_mask, task_id, weighted_loss_mode, loss_
     )  # [B, L]
     task_mask_trans = torch.transpose(task_mask, 0, 1)
     unique_id = torch.unique(task_id)
-    if weighted_loss_mode == "case3" or weighted_loss_mode == "case4" or weighted_loss_mode == "selfpaced":
+    if weighted_loss_mode == "case3" or weighted_loss_mode == "case4" or weighted_loss_mode == "coba":
         loss = 0.0
         weights_sum = 0.0
         for i, w in enumerate(unique_id):
             row_idx = torch.squeeze(task_id) == w.item()
             task_weight = float(task_weights[w.item()])
             weights_sum += task_weight
-            if weighted_loss_mode == "case3" or weighted_loss_mode == "selfpaced":
+            if weighted_loss_mode == "case3" or weighted_loss_mode == "coba":
                 if loss_mask is None:
                     loss += (
                         torch.sum(losses[row_idx, :]) / torch.sum(effective_tokens_per_sample[row_idx]) * task_weight
@@ -104,12 +104,12 @@ def loss_func_mft(outputs, labels, task_mask, task_id, weighted_loss_mode, loss_
     elif weighted_loss_mode == "case1":
         # flatten losses & loss_mask tensor
         if loss_mask is None:
-            losses = losses.view(-1)
-            loss = torch.sum(losses) / effective_tokens
+            # losses = losses.view(-1)
+            loss = torch.sum(losses.view(-1)) / effective_tokens
         else:
-            loss_mask = loss_mask.view(-1)
-            losses = losses.view(-1)
-            loss = torch.sum(losses * loss_mask) / loss_mask.sum()
+            # loss_mask = loss_mask.view(-1)
+            # losses = losses.view(-1)
+            loss = torch.sum(losses.view(-1) * loss_mask.view(-1)) / loss_mask.view(-1).sum()
 
     # fix task order
     task_loss = torch.zeros(len(ID2TASK)).to(device=task_id.device)
@@ -206,29 +206,35 @@ class MFTLossStatus:
         super(MFTLossStatus, self).__init__()
 
 
-class SelfpacedStatus(MFTLossStatus):
+class CoBaStatus(MFTLossStatus):
     def __init__(
         self,
-        selfpaced_scale_factor=50,
-        selfpaced_interval=1,
-        selfpaced_history_length=100,
-        selfpaced_sample_valid_num=1,
+        coba_warmup_steps=100,
+        coba_history_length=200,
+        coba_tau=5,
+        coba_update_interval=1,
+        coba_sample_valid_num=1,
         valid_dataloader=None,
     ):
 
-        super(SelfpacedStatus, self).__init__()
-        self.selfpaced_scale_factor = selfpaced_scale_factor
-        self.selfpaced_interval = selfpaced_interval
-        self.selfpaced_history_length = selfpaced_history_length
-        self.selfpaced_sample_valid_num = selfpaced_sample_valid_num
+        super(CoBaStatus, self).__init__()
+        self.coba_warmup_steps = coba_warmup_steps
+        self.coba_history_length = coba_history_length
+        self.coba_tau = coba_tau
+        self.coba_update_interval = coba_update_interval
+        self.coba_sample_valid_num = coba_sample_valid_num
         self.valid_dataloader = valid_dataloader
         self.valid_dataloader_length = len(valid_dataloader)
         self.valid_iterator = iter(valid_dataloader)
         self.valid_task_loss_accumulated = torch.zeros(len(ID2TASK))
-        self.history_task_valid_loss = torch.zeros((selfpaced_history_length, len(ID2TASK)))
+        self.history_task_valid_loss = None
+        self.per_task_slope_list = None
+        self.total_slope_list = None
+        self.minimum_weight = 1 / (len(ID2TASK) * 10)
+        self.valid_task_loss_begining = torch.ones(len(ID2TASK), dtype=torch.float64)
         self.log_per_task_weight = torch.zeros(len(ID2TASK))
 
-    def selfpaced_evaluate(self, model, v_batch, per_task_weight=None, selfpaced_status=None):
+    def coba_evaluate(self, model, v_batch, per_task_weight=None, coba_status=None):
         model.eval()
         with torch.no_grad():
             valid_outputs = model(
@@ -242,57 +248,93 @@ class SelfpacedStatus(MFTLossStatus):
                 labels=v_batch["labels"],
                 task_mask=v_batch["task_mask"],
                 task_id=v_batch["task_id"],
-                weighted_loss_mode="selfpaced",
+                weighted_loss_mode="coba",
                 loss_mask=v_batch["loss_mask"],
                 task_weights=None,
             )
 
+            task_exist = (valid_task_loss != 0.0).float()
             torch.distributed.all_reduce(valid_task_loss, op=torch.distributed.ReduceOp.SUM)
-            valid_task_loss /= torch.distributed.get_world_size()
+            torch.distributed.all_reduce(task_exist, op=torch.distributed.ReduceOp.SUM)
+            valid_task_loss /= task_exist.clamp_(1.0)
+            valid_task_loss /= self.valid_task_loss_begining
         model.train()
         return valid_task_loss
 
     def compute_per_task_weight(self, completed_steps=None):
-        task_slope_fitting = torch.ones(len(ID2TASK))
-        history_steps = torch.arange(
-            completed_steps - self.selfpaced_history_length, completed_steps, 1
-        )  # DEBUG: step < 0
-        transpose_history_task_valid_loss = self.history_task_valid_loss.transpose(0, 1)
-        for i in range(len(ID2TASK)):
-            per_history_task_valid_loss = transpose_history_task_valid_loss[i]
-            task_slope_fitting[i] = self.fit_window_point(
-                history_steps, per_history_task_valid_loss, history=self.selfpaced_history_length, method="slope"
+        task_num = len(ID2TASK)
+        task_slope_fitting = torch.ones(task_num, dtype=torch.float64)
+        start_step = max(0, completed_steps // self.coba_update_interval - self.coba_history_length)
+        history_steps = torch.arange(start_step, completed_steps, 1)
+        for i in range(task_num):
+            per_task_history_valid_loss = self.history_task_valid_loss[i][-len(history_steps):]
+            task_slope_fitting[i] = self.fit_window_slope(
+                history_steps, per_task_history_valid_loss, type="slope"
             )
-        slope_sum_abs = torch.sum(torch.abs(task_slope_fitting))
-
-        if slope_sum_abs == 0:
-            per_task_weight = torch.ones(len(ID2TASK)) / len(ID2TASK)
+        history_total_valid_loss, index = torch.max(self.history_task_valid_loss[:, -len(history_steps):], dim=0)
+        total_slope_fitting = self.fit_window_slope(
+            history_steps, history_total_valid_loss, type="slope"
+        )
+        if completed_steps == self.coba_warmup_steps:
+            self.per_task_slope_list = task_slope_fitting.unsqueeze(1)
+            self.total_slope_list = total_slope_fitting.unsqueeze(0)
         else:
-            # print_rank_0(f"[step={completed_steps}][slope sum abs={slope_sum_abs}]")
-            normalize_slope = len(ID2TASK) * task_slope_fitting / slope_sum_abs
-            print_rank_0(f"normalize_slope: {normalize_slope}")
-            score = F.softmax(normalize_slope, dim=-1) * (-1 * normalize_slope)
-            print_rank_0(f"score: {score}")
-            per_task_weight = F.softmax(self.selfpaced_scale_factor * score, dim=-1)
-            print_rank_0(f"per_task_weight: {per_task_weight}")
+            self.per_task_slope_list = torch.cat((self.per_task_slope_list, task_slope_fitting.unsqueeze(1)), dim=-1)
+            self.total_slope_list =  torch.cat((self.total_slope_list, total_slope_fitting.unsqueeze(0)), dim=0)
+        
+        # Relative Convergence Score
+        normalize_task_slope = task_num * task_slope_fitting / task_slope_fitting.abs().sum()
+        rcs = F.softmax(normalize_task_slope, dim=-1)
+        
+        # Absolute Convergence Score
+        history_per_task_slope_list = self.per_task_slope_list[:, start_step:]
+        reverse_normailize_iter_slope = -len(history_per_task_slope_list[0]) * history_per_task_slope_list \
+                                        / history_per_task_slope_list.abs().sum(dim=-1, keepdim=True)
+
+        flatten_rn_iter_slope = reverse_normailize_iter_slope.T.reshape(-1)
+        current_step_rn_slope = flatten_rn_iter_slope[-task_num:]
+        acs = F.softmax(current_step_rn_slope, dim=-1)
+
+        # Divergence Factor
+        normalize_total_iter_slope = - len(self.total_slope_list) * self.total_slope_list \
+                                     / self.total_slope_list.abs().sum()
+        divergence_factor = F.softmax(normalize_total_iter_slope * self.coba_tau, dim=-1)[-1] \
+                          * len(self.total_slope_list)
+
+        weight_logits = divergence_factor * rcs + (1 - divergence_factor) * acs
+        per_task_weight = F.softmax(weight_logits * task_num, dim=-1)
+
+        if len((per_task_weight < self.minimum_weight).nonzero().squeeze(0)) > 0:
+            per_task_weight = per_task_weight * (1 - self.minimum_weight * task_num)
+            per_task_weight += self.minimum_weight
 
         return per_task_weight
+    
+    def fit_window_slope(self, x, y, type="slope"):
 
-    def fit_window_point(self, x, y, history=10, method="slope"):
-
+        y = y[y != 0]
+        x = x[:len(y)]
+        
         nonzero_index = torch.squeeze(torch.nonzero(y), dim=1)
         y = torch.index_select(y, 0, nonzero_index)
         x = torch.index_select(x, 0, nonzero_index)
 
         ws = torch.flip(1 ** torch.arange(len(y)), dims=[0])
-        ws = ws.float()
+        ws = ws.double()
 
         if len(y) >= 2:
-            if method == "slope":
-                X = torch.stack((x, torch.ones_like(x))).T
-                X = X.float()
+            if type == "slope":
+                X = torch.stack((x, torch.ones_like(x, dtype=torch.float64))).T
+                X = X.double()
             else:
-                X = torch.stack((x**2, x, torch.ones_like(x))).T
+                X = torch.stack((x ** 2, x, torch.ones_like(x, dtype=torch.float64))).T
+
+            # implementation for numpy
+            # X_np = X.T @ (ws[:, None] * X)
+            # Y_np = X.T @ (ws * y)
+            # w = torch.from_numpy(np.linalg.solve(X_np.numpy(), Y_np.numpy()))
+
+            # implementation for torch
             w = torch.linalg.solve(X.T @ (ws[:, None] * X), X.T @ (ws * y))
 
             result = w[0]
@@ -302,22 +344,22 @@ class SelfpacedStatus(MFTLossStatus):
         return result
 
     def sample_valid_batch(self, model, completed_steps):
-        self.valid_task_loss_accumulated = torch.zeros(len(ID2TASK))
-        for i in range(self.selfpaced_sample_valid_num):
+        self.valid_task_loss_accumulated = torch.zeros(len(ID2TASK), dtype=torch.float64)
+        for i in range(self.coba_sample_valid_num):
             if (
-                self.selfpaced_sample_valid_num * completed_steps // self.selfpaced_interval + i
+                self.coba_sample_valid_num * completed_steps // self.coba_update_interval + i
             ) % self.valid_dataloader_length == 0:
                 self.valid_iterator = iter(self.valid_dataloader)
+                v_batch = next(self.valid_iterator)
+            else:
+                v_batch = next(self.valid_iterator)
+            valid_task_loss = self.coba_evaluate(model, v_batch)
+            self.valid_task_loss_accumulated += valid_task_loss.detach().cpu().double()
 
-            v_batch = next(self.valid_iterator)
-            valid_task_loss = self.selfpaced_evaluate(model, v_batch)
-            self.valid_task_loss_accumulated += valid_task_loss.detach().cpu()
-
-        self.valid_task_loss_accumulated /= self.selfpaced_sample_valid_num
-        self.history_task_valid_loss = torch.cat(
-            (self.history_task_valid_loss, torch.unsqueeze(self.valid_task_loss_accumulated, dim=0))
-        )
-        if len(self.history_task_valid_loss) > self.selfpaced_history_length:
-            self.history_task_valid_loss = self.history_task_valid_loss[
-                len(self.history_task_valid_loss) - self.selfpaced_history_length :
-            ]
+        self.valid_task_loss_accumulated /= self.coba_sample_valid_num
+        if self.history_task_valid_loss is None and completed_steps >= 1:
+            self.history_task_valid_loss = self.valid_task_loss_accumulated.unsqueeze(1)
+        elif self.history_task_valid_loss is not None:
+            self.history_task_valid_loss = torch.cat(
+                (self.history_task_valid_loss, self.valid_task_loss_accumulated.unsqueeze(1)), dim=-1
+            )
