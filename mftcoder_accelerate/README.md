@@ -161,12 +161,19 @@ Here are some excellent pre-trained models weights available on Huggingface that
 ```
 mftcoder_accelerate
        |
-       src
+       data
+       |
+       inference
+       |
+       model
+       |
+       tokenization
+       |
+       tokenizer
+       |
+       training
+          |
           configs
-          |
-          data
-          |
-          model
           |
           *pefts*
           |
@@ -174,41 +181,22 @@ mftcoder_accelerate
           |
           *mpt*
           |
-          *offline_tokenization*
-          |
-          tokenizer
-          |
-          utils
-       |
-       evals
-```
-我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
+          train_utils
 
-MFT训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
-
-DPO/ORPO训练入口文件是```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```
-
-MPT(全量加训)训练入口文件是```mftcoder_accelerate/src/mpt/mpt_accelerate.py```
-
-参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
-
-**_所以，在你开启训练之前，请进入src目录_**
-```
-cd mftcoder_accelerate/src
 ```
 
-You can find the implementations in the ```mftcoder_accelerate/src``` directory
-The entry file for MFT training is ```mftcoder_accelerate/src/pefts/mft_accelerate.py```. 
+You can find the implementations in the ```mftcoder_accelerate``` directory
+The entry file for MFT training is ```mftcoder_accelerate/training/mft_accelerate.py```. 
 
-The entry file for DPO/ORPO training is ```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```. 
+The entry file for DPO/ORPO training is ```mftcoder_accelerate/training/xxpo_accelerate.py```. 
 
-The entry file for MPT(Continue Training) is ```mftcoder_accelerate/src/mpt/mpt_accelerate.py```. You need finish offline tokenization of your data via ```mftcoder_accelerate/src/run_offline_tokenization.sh```, which is different from the online tokenizaion used in MFT/DPO.
+The entry file for MPT(Continue Training) is ```mftcoder_accelerate/training/mpt_accelerate.py```. You need finish offline tokenization of your data via ```mftcoder_accelerate/run_offline_tokenization.sh```, which is different from the online tokenizaion used in MFT/DPO.
 
-Configurations are stored in the ```mftcoder_accelerate/src/configs``` directory for easy management and modification.
+Configurations are stored in the ```mftcoder_accelerate/training/configs``` directory for easy management and modification.
 
 **_As a result, before you start training, you should first change your dir by_**
 ```
-cd mftcoder_accelerate/src
+cd mftcoder_accelerate
 ```
 
 ### 3.1 MFT Tokenization
@@ -217,7 +205,6 @@ During training, we concatenate multi-turn dialogues into the following format (
 In default format, ```<s>human\n``` starts the user's input (i.e., prompt),```<s>bot\n``` starts the assistant's output (i.e., response)
 
 ```{EOS_TOKEN}``` represents the proper eos_token.
-We have different eos_tokens in ```src/pefts/model_mapping.py``` which fits different base models.
 
 Here is a visionable example of the training data after formatting:
 ```
@@ -244,7 +231,7 @@ To perform LoRA/QLoRA fine-tuning, you can execute the following command:
 #### Launch via Deepspeed
 DeepSpeed config in accelerate_ds_config.yaml.
 ```bash
-accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
+accelerate launch --config_file accelerate_ds_config.yaml training/mft_accelerate.py --train_config training/configs/xxx_train_config.json --distributed_type "DeepSpeed" 
 ```
 or
 DeepSpeed Zero2 config in command line arguments
@@ -259,7 +246,7 @@ sh ds_zero3_single_launch.sh
 #### Launch via FSDP
 FSDP config in accelerate_fsdp_config.yaml.
 ```bash
-accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "FSDP"
+accelerate launch --config_file accelerate_fsdp_config.yaml training/mft_accelerate.py --train_config training/configs/xxx_train_config.json --distributed_type "FSDP"
 ```
 or
 FSDP config in command line arguments
@@ -276,7 +263,7 @@ sh ds_multinode_launch.sh
 #### Traing Arguments
 All arguments allowed in ***_train_config.josn are defined in ```arguments.py```.
 
-Frequently used arguments are provided in ```configs/***_train_config``` and explained as follows. You can modify these parameters according to your needs:
+Frequently used arguments are provided in ```training/configs/***_train_config``` and explained as follows. You can modify these parameters according to your needs:
 
 - **load_raw_dataset**:  Need to be true at present. Only JSONL format is supported.
 

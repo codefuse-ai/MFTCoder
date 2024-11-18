@@ -152,12 +152,19 @@
 ```
 mftcoder_accelerate
        |
-       src
+       data
+       |
+       inference
+       |
+       model
+       |
+       tokenization
+       |
+       tokenizer
+       |
+       training
+          |
           configs
-          |
-          data
-          |
-          model
           |
           *pefts*
           |
@@ -165,27 +172,22 @@ mftcoder_accelerate
           |
           *mpt*
           |
-          *offline_tokenization*
-          |
-          tokenizer
-          |
-          utils
-       |
-       evals
+          train_utils
+
 ```
-我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```src```目录下的实现。
+我们将训练中使用的各种组件抽取出来，以便后续的扩展和优化， 详见```mftcoder_accelerate```目录下的实现。
 
-MFT训练入口文件是```mftcoder_accelerate/src/pefts/mft_accelerate.py```
+MFT训练入口文件是```mftcoder_accelerate/training/mft_accelerate.py```
 
-DPO/ORPO训练入口文件是```mftcoder_accelerate/src/xxpo/xxpo_accelerate.py```
+DPO/ORPO训练入口文件是```mftcoder_accelerate/training/xxpo_accelerate.py```
 
-MPT(全量加训)训练入口文件是```mftcoder_accelerate/src/mpt/mpt_accelerate.py```. MPT加训需要提前做好数据的tokenziation，通过```mftcoder_accelerate/src/run_offline_tokenization.sh```，你可以将数据通过cpu进行离线的tokenization。这和MFT/DPO中使用的在线tokenziation不同。
+MPT(全量加训)训练入口文件是```mftcoder_accelerate/training/mpt_accelerate.py```. MPT加训需要提前做好数据的tokenziation，通过```mftcoder_accelerate/run_offline_tokenization.sh```，你可以将数据通过cpu进行离线的tokenization。这和MFT/DPO中使用的在线tokenziation不同。
 
-参数配置存储在```mftcoder_accelerate/src/configs```目录下，方便统一管理和更改。
+参数配置存储在```mftcoder_accelerate/training/configs```目录下，方便统一管理和更改。
 
-**_所以，在你开启训练之前，请进入src目录_**
+**你开启训练之前**
 ```
-cd mftcoder_accelerate/src
+cd mftcoder_accelerate
 ```
 
 
@@ -216,7 +218,7 @@ QLoRA论文指出，该方法可以在一张V100上对33B的模型进行微调�
 #### Deepspeed 单机启动
 DeepSpeed配置在accelerate_ds_config.yaml中。
 ```bash
-accelerate launch --config_file accelerate_ds_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "DeepSpeed" 
+accelerate launch --config_file accelerate_ds_config.yaml training/mft_accelerate.py --train_config training/configs/xxx_train_config.json --distributed_type "DeepSpeed" 
 ```
 或者
 
@@ -233,7 +235,7 @@ sh ds_zero3_single_launch.sh
 #### FSDP 单机启动
 FSDP配置在accelerate_fsdp_config.yaml中。
 ```bash
-accelerate launch --config_file accelerate_fsdp_config.yaml pefts/mft_accelerate.py --train_config configs/xxx_train_config.json --distributed_type "FSDP"
+accelerate launch --config_file accelerate_fsdp_config.yaml training/mft_accelerate.py --train_config training/configs/xxx_train_config.json --distributed_type "FSDP"
 ```
 或者
 
@@ -249,7 +251,7 @@ sh ds_multinode_launch.sh
 ```
 
 #### 训练参数
-_**训练需要的参数配置在```configs/*_train_config```中，主要参数说明如下：**_
+_**训练需要的参数配置在```training/configs/*_train_config```中，主要参数说明如下：**_
 
 - **load_raw_dataset**: 需要保持true，后续会支持其它模式数据，当前仅支持jsonl输入
 - **data_paths**: "[path1,path2,path3]" 输入数据地址，字符串，开头结尾用[]，中间用```,```间隔不同path，每个path是一个目录，目录的最后一级名字作为任务名称，下面包含1到多个jsonl数据

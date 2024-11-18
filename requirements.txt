@@ -17,3 +17,6 @@ ujson
 jsonlines
 tiktoken
 transformers_stream_generator
+tqdm
+jinja2
+colorama
