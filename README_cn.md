@@ -113,7 +113,7 @@
 
 :white_check_mark: **多模型**：支持最新的多个开源模型，包括gpt-neox，llama，llama-2，baichuan，Qwen，chatglm2等；
 
-:white_check_mark: **多框架**：既支持主流开源的Accelerate+DeepSpeed/FSDP，也支持新开源的[ATorch 框架](https://github.com/intelligent-machine-learning/dlrover)；
+:white_check_mark: **多框架**：既支持主流开源的Accelerate+DeepSpeed/FSDP；
 
 :white_check_mark: **高效微调**：支持LoRA和QLoRA，可以用很少的资源去微调很大的模型，且训练速度能满足几乎所有微调场景；
 
@@ -141,10 +141,6 @@ sh init_env.sh
 
 🚀🚀 [MFTCoder-accelerate: Accelerate + DeepSpeed/FSDP Codebase for MFT(Multi-task Finetuning)](mftcoder_accelerate/README.md)
 
-
-如果你想探索一些新兴的训练框架，可以尝试：
-
-🚀 [MFTCoder-atorch: Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## 模型

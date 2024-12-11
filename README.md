@@ -107,9 +107,8 @@
 **MFTCoder** is an open-source project of CodeFuse for accurate and efficient Multi-task Fine-tuning(MFT) on Large Language Models(LLMs), especially on Code-LLMs(large language model for code tasks).
 Moreover, we open source Code LLM models and code-related datasets along with the MFTCoder framework.
 
-In MFTCoder, we released two codebases for finetuning Large Language Models: 
+In MFTCoder, we maintained an open-source codebase for finetuning Large Language Models: 
 - **```MFTCoder-accelerate```** is a framework with accelerate and DeepSpeed/FSDP. All tech-stacks are open-source and vibrant. We highly recommend you try this framework and make your fintuning accurate and efficient.
-- ```MFTCoder-atorch``` is based on the [ATorch frameworks](https://github.com/intelligent-machine-learning/dlrover), which is a fast distributed training framework of LLM.
 
 The aim of this project is to foster collaboration and share advancements in large language models, particularly within the domain of code development.
 
@@ -121,7 +120,7 @@ The aim of this project is to foster collaboration and share advancements in lar
 
 :white_check_mark: **Multi-model**: It integrates state-of-the-art open-source models such as gpt-neox, llama, llama-2, baichuan, Qwen, chatglm2, and more. (These finetuned models will be released in the near future.)
 
-:white_check_mark: **Multi-framework**: It provides support for both Accelerate (with Deepspeed and FSDP) and ATorch
+:white_check_mark: **Multi-framework**: It provides support for both Accelerate with Deepspeed and FSDP.
 
 :white_check_mark: **Efficient fine-tuning**: It supports LoRA, QLoRA as well as Full-parameters training, enabling fine-tuning of large models with minimal resources. The training speed meets the demands of almost all fine-tuning scenarios.
 
@@ -145,16 +144,12 @@ We highly recommend training with flash attention(version >= 2.3.0), please refe
 
 
 ## Training
-As mentioned above, we open source two training frameworks. You could refer to their own READMEs for more details as followed. 
+You could refer to their own READMEs for more details as followed. 
 
 If you are familiar with open source ```transformers```, ```DeepSpeed``` or ```FSDP```, we highly recommend you try:
 
 🚀🚀 [**MFTCoder-accelerate: Accelerate + Deepspeed/FSDP Codebase for MFT(Multi-task Finetuning)**](mftcoder_accelerate/README.md)
 
-
-If you want to explore some new framework like atorch, you could check:
-
-🚀 [MFTCoder-atorch: Atorch Codebase for MFT(Multi-task Finetuning)](mftcoder_atorch/README.md)
 
 
 ## Models

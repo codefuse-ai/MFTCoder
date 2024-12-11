@@ -297,7 +297,7 @@ _**训练需要的参数配置在```training/configs/*_train_config```中，主�
 - **xxpo**: 偏好对齐方法, "dpo" 或者 "orpo"。
 - **beta**: DPO beta, beta 越小，允许对齐后的dpo模型与ref模型的距离越远。
 - **rpo_alpha**: 加到dop损失的```chosen``` NLL损失的系数，0的话就是原始DPO。
-- 
+
 ## 4. 模型使用
 
 ### 4.1 权重合并
