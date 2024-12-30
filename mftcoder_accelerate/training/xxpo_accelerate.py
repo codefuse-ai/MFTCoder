@@ -326,10 +326,11 @@ def main():
         all_datasets.append(ds)
 
     all_dataset = concatenate_datasets(all_datasets)
-    # all_dataset = all_dataset.filter(
-    #     lambda x: len(x["prompt"]) + len(x["chosen"]) <= args.max_length
-    #     and len(x["prompt"]) + len(x["rejected"]) <= args.max_length
-    # )
+    # drop samples which exceed max_length
+    all_dataset = all_dataset.filter(
+        lambda x: len(x["prompt"]) + len(x["chosen"]) <= args.max_length
+        and len(x["prompt"]) + len(x["rejected"]) <= args.max_length
+    )
     accelerator.print(f"Length of all_dataset: {len(all_dataset)}")
 
     # split train/eval dataset

@@ -5,6 +5,8 @@ import torch
 import json
 import os
 import gzip
+import re
+import ast
 from tqdm import tqdm
 from typing import Iterable, Dict, List
 
@@ -74,3 +76,47 @@ def write_jsonl(filename: str, data: Iterable[Dict], total, append: bool = False
         with open(filename, mode) as fp:
             for x in tqdm(data, total=total):
                 fp.write((json.dumps(x) + "\n").encode("utf-8"))
+
+
+def is_compilable(code):
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError:
+        return False
+
+
+def is_tests(code):
+    return code.strip().startswith("assert")
+
+
+def extract_python_code_block(response):
+    # pattern = r"^```[Pp]ython\s*\n(.*?)(?=^```)"
+    pattern = r"^```\s*(?:[Pp]ython)?\s*\n(.*?)(?=^```)"
+    result = re.findall(pattern, response, re.DOTALL | re.MULTILINE)
+    return "\n".join([x for x in result if is_compilable(x) and not is_tests(x)])
+
+
+def extract_python_test_block(response):
+    # pattern = r"^```[Pp]ython\s*\n(.*?)(?=^```)"
+    pattern = r"^```\s*(?:[Pp]ython)?\s*\n(.*?)(?=^```)"
+    result = re.findall(pattern, response, re.DOTALL | re.MULTILINE)
+    return "\n".join([x for x in result if is_compilable(x) and is_tests(x)])
+
+
+def extract_code_with_lang(text):
+    """
+    使用正则表达式从文本中提取任意语言的代码块。
+
+    参数:
+    - text: 包含Markdown代码块的字符串。
+
+    返回:
+    - 一个包含所有匹配的代码块及其语言的列表，每一个元组都是 (language, code_block)。
+    """
+    # 编译正则表达式模式，匹配任意语言的代码块
+    pattern = re.compile(r"```([\w+#-]*)\s*\n(.*?)```", re.DOTALL | re.MULTILINE)
+
+    # 使用findall方法找出所有匹配的代码块及其语言标识
+    # 返回的是一个元组列表，每个元组包含 (language, code_block)
+    return pattern.findall(text)

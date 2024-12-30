@@ -1,6 +1,6 @@
 """
- @author qumu
- transformers==4.40 is stable now
+ @author Chaoyu Chen
+ transformers==4.44.2 is stable now
 """
 
 # Models that Transformers support Code and FA2 when flash_attn>=2.1.0
